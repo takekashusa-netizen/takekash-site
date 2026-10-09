@@ -1,0 +1,86 @@
+TAKEKASH.COM ADMIN DASHBOARD — SETUP
+=====================================
+
+What this is
+-------------
+A password-gated page at takekash.com/admin.html for you only — not
+linked from the site nav, not something a visitor would stumble
+onto. It shows real data from your pipeline: jobs, the publish
+queue, and recent posts.
+
+The site is a static Netlify site with no live backend on your Mac
+reachable from the internet, so this does NOT query your Mac live.
+Instead: you export a snapshot of the pipeline's data, it gets baked
+into a small serverless function at deploy time, and the admin page
+reads it from there through your admin key. That means data is "as
+of your last sync," not second-by-second — you decide when to
+refresh it.
+
+Files added
+-----------
+autoclip-pipeline/lib/export_admin_snapshot.py
+  Reads takekash.db + publish_schedule.json, writes a snapshot into
+  takekash-site-live/netlify/functions/admin-data/snapshot.json.
+
+takekash-site-live/netlify/functions/admin-data/admin-data.mts
+  The serverless function. Serves the snapshot ONLY when the
+  request includes the correct admin key. Available at
+  /api/admin-data once deployed.
+
+takekash-site-live/netlify/functions/admin-data/snapshot.json
+  The current snapshot (already generated once, with your real
+  data as of today).
+
+takekash-site-live/admin.html
+  The dashboard page itself. Password gate, then jobs / queue /
+  recent posts, all pulled from /api/admin-data.
+
+One-time setup (do this before it'll work live)
+-------------------------------------------------
+1. In the Netlify dashboard for this site: Site configuration >
+   Environment variables > Add a variable.
+     Key:   ADMIN_KEY
+     Value: a00f3654422035a84817ae304cb04418e4c3e60aabb7abe2
+   Scope: Functions (or "All scopes" is fine too).
+
+   This is the key that gates /api/admin-data — keep it private,
+   it's effectively the password to your own dashboard. You can
+   generate a different one anytime with `openssl rand -hex 24` and
+   update the env var to match.
+
+2. Deploy the site so the function picks up the new env var and the
+   new files (from a Terminal on your Mac, inside the
+   takekash-site-live folder — it's already linked to your real
+   site via the Netlify CLI):
+
+     cd ~/takekash-site-live
+     netlify deploy --prod
+
+   If `netlify` isn't installed: `npm install -g netlify-cli`, then
+   `netlify login` once, then the deploy command above.
+
+3. Open https://takekash.com/admin.html and enter the admin key
+   from step 1. That's it — you're in.
+
+Refreshing the data later
+--------------------------
+Whenever you want the dashboard caught up to what the pipeline has
+actually done since your last sync:
+
+     cd ~/autoclip-pipeline
+     python3 lib/export_admin_snapshot.py
+     cd ~/takekash-site-live
+     netlify deploy --prod
+
+The dashboard shows "Synced <time>" at the top, and flags itself as
+stale if it's more than 48 hours old, so you'll always know how
+current the numbers are.
+
+Notes
+-----
+- admin.html has <meta name="robots" content="noindex, nofollow">
+  and isn't linked from anywhere on the site, but it's still just a
+  URL — anyone who has it still needs the correct admin key to see
+  anything (a wrong key gets a plain 401, no data leaks).
+- Nothing here touches Stripe, checkout, or the public marketing
+  pages — this is fully separate from everything else on the site.

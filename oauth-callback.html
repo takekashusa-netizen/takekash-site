@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>TakeKash — Authorization</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --bg2: #111111;
+    --bg3: #1a1a1a;
+    --gold: #f5a623;
+    --gold2: #e8940f;
+    --text: #f0f0f0;
+    --muted: #888;
+    --border: #222;
+    --radius: 6px;
+    --ok: #3ecf6d;
+    --err: #ff5c5c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .box {
+    width: 100%;
+    max-width: 480px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 32px;
+  }
+  h1 { font-size: 18px; margin-bottom: 6px; }
+  h1 span { color: var(--gold); }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+  .status { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 14px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .dot.ok { background: var(--ok); }
+  .dot.err { background: var(--err); }
+  label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 6px; }
+  .field { margin-bottom: 16px; }
+  .code-box {
+    display: flex;
+    gap: 8px;
+  }
+  .code-box input {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 10px 12px;
+    font-size: 13px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .code-box button, .copy-btn {
+    background: var(--gold);
+    color: #000;
+    border: none;
+    border-radius: var(--radius);
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .code-box button:hover { background: var(--gold2); }
+  .copied { color: var(--ok); font-size: 12px; margin-top: 6px; min-height: 16px; }
+  .hint {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .err-detail { color: var(--err); font-size: 13px; margin-top: 8px; word-break: break-word; }
+</style>
+</head>
+<body>
+  <div class="box">
+    <h1>TakeKash <span>Authorization</span></h1>
+    <div class="sub">TikTok Login Kit callback</div>
+
+    <div id="success-view" style="display:none">
+      <div class="status"><span class="dot ok"></span> Authorization received</div>
+      <div class="field">
+        <label>Authorization code</label>
+        <div class="code-box">
+          <input type="text" id="code-field" readonly />
+          <button onclick="copyCode()">Copy</button>
+        </div>
+        <div class="copied" id="copied-msg"></div>
+      </div>
+      <div class="hint">
+        Paste this into <code>lib/tiktok_oauth_flow.py</code> when it prompts for the code. This tab doesn't need to stay open — the code doesn't expire instantly, but don't sit on it too long before pasting it in.
+      </div>
+    </div>
+
+    <div id="error-view" style="display:none">
+      <div class="status"><span class="dot err"></span> Authorization failed</div>
+      <div class="err-detail" id="error-detail"></div>
+      <div class="hint">TikTok reported an error instead of an authorization code. Close this tab and try the login flow again from <code>lib/tiktok_oauth_flow.py</code>.</div>
+    </div>
+
+    <div id="empty-view" style="display:none">
+      <div class="status"><span class="dot err"></span> No authorization data found</div>
+      <div class="hint">This page is only useful right after TikTok redirects here during login. If you navigated here directly, there's nothing to do — start the flow from <code>lib/tiktok_oauth_flow.py</code> instead.</div>
+    </div>
+  </div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  const error = params.get('error');
+  const errorDesc = params.get('error_description');
+
+  if (code) {
+    document.getElementById('success-view').style.display = 'block';
+    document.getElementById('code-field').value = code;
+  } else if (error) {
+    document.getElementById('error-view').style.display = 'block';
+    document.getElementById('error-detail').textContent = errorDesc || error;
+  } else {
+    document.getElementById('empty-view').style.display = 'block';
+  }
+
+  function copyCode() {
+    const field = document.getElementById('code-field');
+    field.select();
+    field.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(field.value).then(() => {
+      document.getElementById('copied-msg').textContent = 'Copied to clipboard.';
+    }).catch(() => {
+      document.getElementById('copied-msg').textContent = 'Select and copy manually.';
+    });
+  }
+</script>
+</body>
+</html>

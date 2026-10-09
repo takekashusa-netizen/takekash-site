@@ -1,0 +1,20 @@
+/* TakeKash nav fix — wraps all links into visible rows instead of
+   cutting off in a horizontally-scrollable single line */
+nav {
+  flex-wrap: wrap !important;
+  height: auto !important;
+  min-height: unset !important;
+  padding: 8px 16px !important;
+}
+nav ul {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  overflow-x: visible !important;
+  overflow: visible !important;
+  width: auto !important;
+  row-gap: 8px !important;
+  column-gap: 12px !important;
+}
+nav ul li {
+  white-space: nowrap;
+}

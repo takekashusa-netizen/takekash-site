@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>TakeKash — Admin</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --bg2: #111111;
+    --bg3: #1a1a1a;
+    --gold: #f5a623;
+    --gold2: #e8940f;
+    --text: #f0f0f0;
+    --muted: #888;
+    --border: #222;
+    --radius: 6px;
+    --ok: #3ecf6d;
+    --warn: #f5a623;
+    --err: #ff5c5c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+  a { color: var(--gold); }
+
+  /* ── gate ── */
+  #gate {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  #gate .box {
+    width: 100%;
+    max-width: 360px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 32px;
+    text-align: center;
+  }
+  #gate h1 { font-size: 18px; margin-bottom: 6px; }
+  #gate .sub { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+  #gate input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 10px 12px;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  #gate button, .btn {
+    width: 100%;
+    background: var(--gold);
+    color: #000;
+    border: none;
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  #gate button:hover, .btn:hover { background: var(--gold2); }
+  #gate-error { color: var(--err); font-size: 13px; margin-top: 10px; min-height: 16px; }
+
+  /* ── dashboard ── */
+  #dash { display: none; max-width: 1100px; margin: 0 auto; padding: 28px 20px 60px; }
+  #dash.visible { display: block; }
+  header.top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  header.top h1 { font-size: 20px; }
+  header.top h1 span { color: var(--gold); }
+  #synced { color: var(--muted); font-size: 12px; }
+  #synced.stale { color: var(--warn); }
+
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .tile {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+  }
+  .tile .num { font-size: 26px; font-weight: 700; color: var(--gold); }
+  .tile .label { color: var(--muted); font-size: 12px; margin-top: 4px; }
+
+  section { margin-bottom: 36px; }
+  section h2 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td {
+    text-align: left;
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; }
+  tr:hover td { background: var(--bg3); }
+  td.wrap { white-space: normal; max-width: 360px; }
+  .table-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto; }
+  .table-wrap table { min-width: 560px; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge.published, .badge.ready, .badge.approved { background: rgba(62,207,109,0.15); color: var(--ok); }
+  .badge.pending, .badge.processing { background: rgba(245,166,35,0.15); color: var(--warn); }
+  .badge.error, .badge.blocked, .badge.failed { background: rgba(255,92,92,0.15); color: var(--err); }
+  .badge.disqualified { background: rgba(136,136,136,0.2); color: var(--muted); }
+
+  #err { color: var(--err); font-size: 13px; }
+  .empty { color: var(--muted); font-size: 13px; padding: 14px; }
+  .foot-link { margin-top: 8px; }
+  .foot-link button { width: auto; padding: 6px 14px; font-size: 12px; }
+</style>
+</head>
+<body>
+
+  <div id="gate">
+    <div class="box">
+      <h1>TakeKash <span>Admin</span></h1>
+      <div class="sub">Owner-only. Enter the admin key.</div>
+      <input type="password" id="key-input" placeholder="Admin key" autocomplete="off" onkeydown="if(event.key==='Enter') unlock()" />
+      <button onclick="unlock()">Unlock</button>
+      <div id="gate-error"></div>
+    </div>
+  </div>
+
+  <div id="dash">
+    <header class="top">
+      <h1>TakeKash <span>Admin</span></h1>
+      <div id="synced">—</div>
+    </header>
+
+    <div id="err"></div>
+
+    <div class="tiles" id="tiles"></div>
+
+    <section>
+      <h2>Jobs</h2>
+      <div class="table-wrap"><table id="jobs-table"><thead>
+        <tr><th>Job</th><th>Game</th><th>Clips</th><th>Status breakdown</th><th>Last activity</th></tr>
+      </thead><tbody></tbody></table></div>
+    </section>
+
+    <section>
+      <h2>Publish queue — upcoming</h2>
+      <div class="table-wrap"><table id="queue-table"><thead>
+        <tr><th>Platform</th><th>Title</th><th>SEO</th><th>Status</th><th>Scheduled</th></tr>
+      </thead><tbody></tbody></table></div>
+    </section>
+
+    <section>
+      <h2>Recent posts</h2>
+      <div class="table-wrap"><table id="posts-table"><thead>
+        <tr><th>Platform</th><th>Title</th><th>Status</th><th>Scheduled / published</th></tr>
+      </thead><tbody></tbody></table></div>
+    </section>
+
+    <div class="foot-link"><button class="btn" onclick="loadData()">Refresh</button></div>
+  </div>
+
+<script>
+  const KEY_STORAGE = 'tk_admin_key';
+
+  function fmtDate(s) {
+    if (!s) return '—';
+    const d = new Date(s);
+    if (isNaN(d)) return s;
+    return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  function badge(status) {
+    const s = (status || 'unknown').toLowerCase();
+    return `<span class="badge ${s}">${status || 'unknown'}</span>`;
+  }
+
+  async function unlock() {
+    const key = document.getElementById('key-input').value.trim();
+    document.getElementById('gate-error').textContent = '';
+    if (!key) return;
+    const ok = await tryKey(key);
+    if (ok) {
+      sessionStorage.setItem(KEY_STORAGE, key);
+      document.getElementById('gate').style.display = 'none';
+      document.getElementById('dash').classList.add('visible');
+      render(window.__tkData);
+    } else {
+      document.getElementById('gate-error').textContent = 'Incorrect key.';
+    }
+  }
+
+  async function tryKey(key) {
+    try {
+      const resp = await fetch('/api/admin-data', { headers: { 'x-admin-key': key } });
+      if (!resp.ok) return false;
+      window.__tkData = await resp.json();
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async function loadData() {
+    const key = sessionStorage.getItem(KEY_STORAGE);
+    if (!key) return;
+    const ok = await tryKey(key);
+    const errEl = document.getElementById('err');
+    if (!ok) {
+      errEl.textContent = 'Could not load admin data — key may have changed.';
+      return;
+    }
+    errEl.textContent = '';
+    render(window.__tkData);
+  }
+
+  function render(data) {
+    // synced timestamp / staleness
+    const synced = document.getElementById('synced');
+    if (data.generated_at) {
+      const gen = new Date(data.generated_at);
+      const hrsAgo = (Date.now() - gen.getTime()) / 3600000;
+      synced.textContent = 'Synced ' + fmtDate(data.generated_at) + (hrsAgo > 48 ? ' — stale, re-run the export + redeploy' : '');
+      synced.classList.toggle('stale', hrsAgo > 48);
+    }
+
+    // tiles
+    const t = data.totals || {};
+    const tiles = [
+      { label: 'Total clips', num: t.clips ?? 0 },
+      { label: 'Social posts', num: t.social_posts ?? 0 },
+      { label: 'Queue items', num: t.queue_items ?? 0 },
+      { label: 'Queue pending', num: (data.queue && data.queue.status_counts && data.queue.status_counts.pending) || 0 },
+      { label: 'Published', num: (data.posts && data.posts.by_status && data.posts.by_status.published) || 0 },
+    ];
+    document.getElementById('tiles').innerHTML = tiles.map(x =>
+      `<div class="tile"><div class="num">${x.num}</div><div class="label">${x.label}</div></div>`
+    ).join('');
+
+    // jobs
+    const jobsBody = document.querySelector('#jobs-table tbody');
+    const jobs = data.jobs || [];
+    jobsBody.innerHTML = jobs.length ? jobs.map(j => `
+      <tr>
+        <td>${j.job_id}</td>
+        <td>${j.game || '—'}</td>
+        <td>${j.clip_count}</td>
+        <td>${Object.entries(j.status_counts || {}).map(([s,n]) => `${badge(s)} ${n}`).join(' ')}</td>
+        <td>${fmtDate(j.last_created_at)}</td>
+      </tr>`).join('') : '';
+    if (!jobs.length) jobsBody.innerHTML = `<tr><td colspan="5" class="empty">No jobs yet.</td></tr>`;
+
+    // queue
+    const queueBody = document.querySelector('#queue-table tbody');
+    const upcoming = (data.queue && data.queue.upcoming) || [];
+    queueBody.innerHTML = upcoming.length ? upcoming.map(q => `
+      <tr>
+        <td>${q.platform || '—'}</td>
+        <td class="wrap">${q.title || q.content_id || '—'}</td>
+        <td>${q.seo_total ?? '—'}</td>
+        <td>${badge(q.status)}</td>
+        <td>${fmtDate(q.scheduled_time)}</td>
+      </tr>`).join('') : '';
+    if (!upcoming.length) queueBody.innerHTML = `<tr><td colspan="5" class="empty">Queue is empty.</td></tr>`;
+
+    // recent posts
+    const postsBody = document.querySelector('#posts-table tbody');
+    const recent = (data.posts && data.posts.recent) || [];
+    postsBody.innerHTML = recent.length ? recent.map(p => `
+      <tr>
+        <td>${p.platform || '—'}</td>
+        <td class="wrap">${p.title || '—'}</td>
+        <td>${badge(p.status)}</td>
+        <td>${fmtDate(p.published_at || p.scheduled_for)}</td>
+      </tr>`).join('') : '';
+    if (!recent.length) postsBody.innerHTML = `<tr><td colspan="4" class="empty">No posts yet.</td></tr>`;
+  }
+
+  // auto-unlock if a key is already remembered for this tab
+  (async function init() {
+    const stored = sessionStorage.getItem(KEY_STORAGE);
+    if (!stored) return;
+    const ok = await tryKey(stored);
+    if (ok) {
+      document.getElementById('gate').style.display = 'none';
+      document.getElementById('dash').classList.add('visible');
+      render(window.__tkData);
+    } else {
+      sessionStorage.removeItem(KEY_STORAGE);
+    }
+  })();
+</script>
+</body>
+</html>
