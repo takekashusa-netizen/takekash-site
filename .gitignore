@@ -6,3 +6,5 @@ node_modules/
 clips/
 *.mp4
 *.mov
+clips/
+*.mp4
