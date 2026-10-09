@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>TakeKash — AI Clipping Agent for Streamers</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    :root{--bg:#080808;--bg2:#0f0f0f;--bg3:#1a1a1a;--gold:#f5a623;--gold2:#e8940f;--green:#00ff88;--text:#f0f0f0;--muted:#666;--border:#1e1e1e;--r:6px}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;overflow-x:hidden;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+    nav{position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;z-index:100;background:rgba(8,8,8,.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(245,166,35,.1);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;transition:background .3s}
+    .nav-logo{font-size:18px;font-weight:800;color:var(--text);text-decoration:none;letter-spacing:-.5px}
+    .nav-logo span{color:var(--gold)}
+    .nav-links{display:flex;align-items:center;gap:4px;list-style:none}
+    .nav-links a{color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;padding:6px 10px;border-radius:var(--r);transition:color .15s,background .15s}
+    .nav-links a:hover,.nav-links a.active{color:var(--text);background:var(--bg3)}
+    .nav-cta{background:var(--gold)!important;color:#000!important;font-weight:700!important;transition:transform .15s,background .15s!important}
+    .nav-cta:hover{background:var(--gold2)!important;transform:scale(1.05)!important}
+    .hamburger{display:none;background:none;border:none;cursor:pointer;padding:4px;flex-direction:column;gap:5px}
+    .hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px;transition:all .2s}
+    .mobile-menu{display:none;position:fixed;top:56px;left:0;right:0;background:var(--bg2);border-bottom:1px solid var(--border);padding:12px;z-index:99;flex-direction:column;gap:4px}
+    .mobile-menu.open{display:flex}
+    .mobile-menu a{color:var(--muted);text-decoration:none;font-size:15px;font-weight:500;padding:12px 16px;border-radius:var(--r);transition:color .15s,background .15s}
+    .mobile-menu a:hover{color:var(--text);background:var(--bg3)}
+    .mobile-menu .nav-cta{background:var(--gold)!important;color:#000!important;font-weight:700!important;text-align:center;margin-top:8px}
+    @media(max-width:860px){.nav-links{display:none}.hamburger{display:flex}}
+    .page{display:none}.page.active{display:block}
+    #hero-canvas{position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;opacity:.55}
+    .hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 24px 60px;text-align:center;overflow:hidden}
+    .hero-content{position:relative;z-index:1;max-width:780px}
+    .hero-badge{display:inline-block;border:1px solid rgba(245,166,35,.4);color:var(--gold);font-size:11px;font-weight:600;letter-spacing:.1em;padding:5px 14px;border-radius:20px;margin-bottom:28px;animation:pulse-border 2s ease-in-out infinite}
+    @keyframes pulse-border{0%,100%{border-color:rgba(245,166,35,.4);box-shadow:0 0 0 0 rgba(245,166,35,0)}50%{border-color:rgba(245,166,35,.8);box-shadow:0 0 20px rgba(245,166,35,.15)}}
+    .hero h1{font-size:clamp(36px,6vw,68px);font-weight:800;line-height:1.05;letter-spacing:-2px;margin-bottom:24px}
+    .hero h1 em{color:var(--gold);font-style:normal}
+    .hero h1 .green{color:var(--green)}
+    .hero p{font-size:18px;color:var(--muted);max-width:520px;margin:0 auto 40px;line-height:1.7}
+    .url-form{display:flex;gap:8px;max-width:560px;margin:0 auto 16px}
+    .url-form input{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(245,166,35,.2);color:var(--text);padding:14px 16px;border-radius:var(--r);font-size:15px;outline:none;transition:border-color .2s,box-shadow .2s;backdrop-filter:blur(10px)}
+    .url-form input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,166,35,.1)}
+    .url-form input::placeholder{color:var(--muted)}
+    .btn-gold{background:var(--gold);color:#000;border:none;padding:14px 24px;font-size:15px;font-weight:700;border-radius:var(--r);cursor:pointer;white-space:nowrap;transition:background .15s,transform .15s,box-shadow .15s}
+    .btn-gold:hover{background:var(--gold2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(245,166,35,.3)}
+    .btn-gold:active{transform:translateY(0)}
+    .reveal{opacity:0;transform:translateY(40px);transition:opacity .7s ease,transform .7s ease}
+    .reveal.visible{opacity:1;transform:translateY(0)}
+    .reveal-delay-1{transition-delay:.1s}.reveal-delay-2{transition-delay:.2s}.reveal-delay-3{transition-delay:.3s}.reveal-delay-4{transition-delay:.4s}
+    .scrolly-section{position:relative;min-height:80vh;display:flex;align-items:center;padding:80px 24px}
+    .scrolly-inner{max-width:1100px;margin:0 auto;width:100%}
+    .scrolly-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+    @media(max-width:768px){.scrolly-grid{grid-template-columns:1fr;gap:40px}}
+    .scrolly-text h2{font-size:clamp(28px,4vw,48px);font-weight:800;letter-spacing:-1.5px;margin-bottom:20px;line-height:1.1}
+    .scrolly-text p{font-size:16px;color:var(--muted);line-height:1.8;margin-bottom:16px}
+    .scrolly-visual{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:32px;position:relative;overflow:hidden}
+    .scrolly-visual::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(245,166,35,.05),transparent);pointer-events:none}
+    .stat-counter{font-size:52px;font-weight:800;letter-spacing:-2px;color:var(--gold);line-height:1}
+    .stat-label{font-size:12px;color:var(--muted);margin-top:6px;font-weight:500;letter-spacing:.06em}
+    .features{padding:80px 24px;max-width:1100px;margin:0 auto}
+    .section-label{font-size:11px;font-weight:600;letter-spacing:.12em;color:var(--gold);margin-bottom:12px}
+    .section-title{font-size:clamp(24px,3.5vw,42px);font-weight:800;letter-spacing:-1.5px;margin-bottom:48px}
+    .feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+    .feature-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:28px;cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s;position:relative;overflow:hidden}
+    .feature-card::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(245,166,35,.07),transparent 60%);opacity:0;transition:opacity .3s}
+    .feature-card:hover{transform:translateY(-4px);border-color:rgba(245,166,35,.3);box-shadow:0 20px 40px rgba(0,0,0,.5)}
+    .feature-card:hover::after{opacity:1}
+    .feature-icon{font-size:28px;margin-bottom:14px}
+    .feature-card h3{font-size:16px;font-weight:700;margin-bottom:10px}
+    .feature-card p{font-size:14px;color:var(--muted);line-height:1.7}
+    .pipeline{padding:80px 24px;background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+    .pipeline-inner{max-width:1000px;margin:0 auto}
+    .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:32px;margin-top:48px}
+    .step{position:relative}
+    .step-num{font-size:40px;font-weight:800;color:var(--gold);line-height:1;margin-bottom:10px}
+    .step h3{font-size:15px;font-weight:700;margin-bottom:8px}
+    .step p{font-size:13px;color:var(--muted);line-height:1.6}
+    .cmd-interface{background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+    .cmd-header{background:var(--bg3);padding:12px 16px;font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.08em;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+    .cmd-dot{width:8px;height:8px;border-radius:50%}
+    .cmd-dot.green{background:#00ff88;animation:blink 1.5s ease-in-out infinite}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+    .cmd-messages{padding:20px;display:flex;flex-direction:column;gap:16px;min-height:240px;max-height:380px;overflow-y:auto}
+    .msg{display:flex;flex-direction:column;gap:4px}
+    .msg-label{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--muted)}
+    .msg-bubble{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.6}
+    .msg.user .msg-bubble{background:rgba(245,166,35,.07);border-color:rgba(245,166,35,.2)}
+    .msg.user .msg-label{color:var(--gold)}
+    .cmd-input-row{display:flex;gap:8px;padding:14px;border-top:1px solid var(--border)}
+    .cmd-input{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:var(--r);font-size:13px;outline:none;transition:border-color .2s}
+    .cmd-input:focus{border-color:var(--gold)}
+    .cmd-input::placeholder{color:var(--muted)}
+    .pricing-section{padding:80px 24px;max-width:1000px;margin:0 auto}
+    .pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:48px}
+    .plan{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:32px;position:relative;transition:transform .2s,box-shadow .2s}
+    .plan:hover{transform:translateY(-4px);box-shadow:0 20px 40px rgba(0,0,0,.4)}
+    .plan.featured{border-color:var(--gold);background:rgba(245,166,35,.03)}
+    .plan-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--gold);color:#000;font-size:10px;font-weight:700;padding:3px 12px;border-radius:20px;white-space:nowrap}
+    .plan h3{font-size:18px;font-weight:700;margin-bottom:6px}
+    .plan-price{font-size:40px;font-weight:800;letter-spacing:-2px;margin:14px 0 4px}
+    .plan-price span{font-size:16px;font-weight:400;color:var(--muted)}
+    .plan-desc{font-size:13px;color:var(--muted);margin-bottom:20px}
+    .plan-features{list-style:none;margin-bottom:24px}
+    .plan-features li{font-size:13px;padding:7px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:flex-start}
+    .plan-features li::before{content:"✓";color:var(--gold);font-weight:700;flex-shrink:0}
+    .btn-plan{width:100%;padding:13px;font-size:14px;font-weight:700;border-radius:var(--r);cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text);transition:all .2s}
+    .btn-plan:hover{border-color:#333;background:#222;transform:scale(1.02)}
+    .plan.featured .btn-plan{background:var(--gold);color:#000;border-color:var(--gold)}
+    .plan.featured .btn-plan:hover{background:var(--gold2)}
+    .page-content{max-width:900px;margin:0 auto;padding:100px 24px 60px}
+    .page-content h1{font-size:clamp(28px,4vw,48px);font-weight:800;letter-spacing:-1.5px;margin-bottom:12px}
+    .page-content .subtitle{font-size:17px;color:var(--muted);margin-bottom:48px}
+    .legal-content h2{font-size:20px;font-weight:700;margin:32px 0 12px}
+    .legal-content p{font-size:14px;color:#bbb;margin-bottom:14px;line-height:1.7}
+    footer{border-top:1px solid var(--border);padding:40px 24px;text-align:center;font-size:13px;color:var(--muted)}
+    footer a{color:var(--muted);text-decoration:none;transition:color .15s}
+    footer a:hover{color:var(--text)}
+    .footer-links{display:flex;gap:24px;justify-content:center;margin-bottom:16px;flex-wrap:wrap}
+    .glow-divider{height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.2;margin:0}
+  </style>
+</head>
+<body>
+
+<nav id="main-nav">
+  <a class="nav-logo" href="#" onclick="showPage('home')">Take<span>Kash</span></a>
+  <ul class="nav-links">
+    <li><a href="#" onclick="showPage('home')" id="nav-home" class="active">Home</a></li>
+    <li><a href="#" onclick="showPage('editflow')" id="nav-editflow">EditFlow Pro</a></li>
+    <li><a href="#" onclick="showPage('console')" id="nav-console">Console Supply</a></li>
+    <li><a href="#" onclick="showPage('thumbnail')" id="nav-thumbnail">AI Thumbnails</a></li>
+    <li><a href="#" onclick="showPage('command')" id="nav-command">Command Center</a></li>
+    <li><a href="#" onclick="showPage('pricing')" id="nav-pricing">Pricing</a></li>
+    <li><a href="#" onclick="showPage('home')" class="nav-cta">Drop a URL</a></li>
+  </ul>
+  <button class="hamburger" onclick="toggleMenu()" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
+
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#" onclick="showPage('home');closeMenu()">Home</a>
+  <a href="#" onclick="showPage('editflow');closeMenu()">EditFlow Pro</a>
+  <a href="#" onclick="showPage('console');closeMenu()">Console Supply Co.</a>
+  <a href="#" onclick="showPage('thumbnail');closeMenu()">AI Thumbnails</a>
+  <a href="#" onclick="showPage('command');closeMenu()">Command Center</a>
+  <a href="#" onclick="showPage('pricing');closeMenu()">Pricing</a>
+  <a href="#" onclick="showPage('privacy');closeMenu()">Privacy</a>
+  <a href="#" onclick="showPage('terms');closeMenu()">Terms</a>
+  <a href="#" onclick="showPage('home');closeMenu()" class="nav-cta">Drop a URL</a>
+</div>
+
+<!-- HOME -->
+<div id="page-home" class="page active">
+  <section class="hero">
+    <canvas id="hero-canvas"></canvas>
+    <div class="hero-content">
+      <div class="hero-badge">⚡ AI CLIPPING AGENT — LIVE</div>
+      <h1>Every stream has <em>10 minutes</em> worth <span class="green">clipping.</span></h1>
+      <p>Drop any Twitch or YouTube VOD. AI finds the best moments, cuts vertical clips, burns karaoke captions. TikTok-ready in minutes.</p>
+      <div class="url-form">
+        <input type="text" placeholder="Paste Twitch or YouTube URL..." id="hero-url"/>
+        <button class="btn-gold" onclick="submitUrl()">Process this stream</button>
+      </div>
+      <p style="font-size:12px;color:var(--muted)">No account required · Results in 10–30 min</p>
+    </div>
+  </section>
+  <div class="glow-divider"></div>
+
+  <!-- SCROLLYTELLING 1 -->
+  <section class="scrolly-section">
+    <div class="scrolly-inner">
+      <div class="scrolly-grid">
+        <div class="scrolly-text reveal">
+          <div class="section-label">HOW IT WORKS</div>
+          <h2>One URL. <em style="color:var(--gold)">Clips in minutes.</em></h2>
+          <p>Paste your stream link and walk away. The AI downloads, transcribes every word, scores each moment for virality, cuts vertical clips, and burns karaoke captions — all while you sleep.</p>
+          <p>No timeline editing. No manual clipping. No caption plugins.</p>
+        </div>
+        <div class="scrolly-visual reveal reveal-delay-2">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div style="text-align:center;padding:20px"><div class="stat-counter" id="c1">0</div><div class="stat-label">CLIPS GENERATED</div></div>
+            <div style="text-align:center;padding:20px"><div class="stat-counter" id="c2" style="color:var(--green)">0</div><div class="stat-label">AVG SEO SCORE</div></div>
+            <div style="text-align:center;padding:20px"><div class="stat-counter" id="c3" style="color:#fff">0</div><div class="stat-label">MIN TO PROCESS</div></div>
+            <div style="text-align:center;padding:20px"><div class="stat-counter" id="c4">0</div><div class="stat-label">HOURS SAVED/MO</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features">
+    <div class="section-label reveal">BUILT IN, NOT AN ADD-ON</div>
+    <h2 class="section-title reveal reveal-delay-1">Captions that move like a real editor cut them.</h2>
+    <div class="feature-grid">
+      <div class="feature-card reveal reveal-delay-1" onmousemove="glow(event,this)"><div class="feature-icon">⚡</div><h3>Word-by-word highlighting</h3><p>Every word lights up as it's spoken. Viewers stay locked in even with sound off.</p></div>
+      <div class="feature-card reveal reveal-delay-2" onmousemove="glow(event,this)"><div class="feature-icon">🎮</div><h3>Game keyword emphasis</h3><p>Kill counts, scores, and hype moments get bold callout treatment mid-sentence automatically.</p></div>
+      <div class="feature-card reveal reveal-delay-3" onmousemove="glow(event,this)"><div class="feature-icon">🎨</div><h3>Game-matched colors</h3><p>Warzone renders tactical orange. Apex in electric blue. Colors match the game's language.</p></div>
+      <div class="feature-card reveal reveal-delay-1" onmousemove="glow(event,this)"><div class="feature-icon">📱</div><h3>9:16 vertical output</h3><p>Every clip at 1080×1920, ready to post to TikTok, Reels, or Shorts directly.</p></div>
+      <div class="feature-card reveal reveal-delay-2" onmousemove="glow(event,this)"><div class="feature-icon">🧠</div><h3>AI moment detection</h3><p>Real transcript and motion analysis finds clutch plays, reactions, and viral moments.</p></div>
+      <div class="feature-card reveal reveal-delay-3" onmousemove="glow(event,this)"><div class="feature-icon">🚀</div><h3>Auto-queue & schedule</h3><p>Every clip gets SEO-optimized titles, hashtags, and a posting schedule automatically.</p></div>
+    </div>
+  </section>
+
+  <!-- PIPELINE -->
+  <section class="pipeline">
+    <div class="pipeline-inner">
+      <div class="section-label reveal">THE PIPELINE</div>
+      <h2 class="section-title reveal reveal-delay-1">Five steps. Zero manual work.</h2>
+      <div class="steps">
+        <div class="step reveal reveal-delay-1"><div class="step-num">01</div><h3>Drop a URL</h3><p>Any Twitch VOD or YouTube link over 10 minutes.</p></div>
+        <div class="step reveal reveal-delay-2"><div class="step-num">02</div><h3>AI analyzes</h3><p>Transcription, motion scoring, and moment detection in parallel.</p></div>
+        <div class="step reveal reveal-delay-3"><div class="step-num">03</div><h3>Clips are cut</h3><p>Best moments become vertical clips with karaoke captions burned in.</p></div>
+        <div class="step reveal reveal-delay-4"><div class="step-num">04</div><h3>SEO generated</h3><p>Titles, hashtags, and captions crafted per clip automatically.</p></div>
+        <div class="step reveal reveal-delay-4"><div class="step-num">05</div><h3>Post or schedule</h3><p>Review, approve, and push to TikTok and Instagram.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AI INTEGRATION -->
+  <section class="scrolly-section">
+    <div class="scrolly-inner">
+      <div class="scrolly-grid">
+        <div class="scrolly-visual reveal">
+          <div class="cmd-interface">
+            <div class="cmd-header"><div class="cmd-dot green"></div> TAKEKASH AI — GtaxZombies</div>
+            <div class="cmd-messages" id="home-msgs">
+              <div class="msg"><div class="msg-label">TAKEKASH</div><div class="msg-bubble">Ready. Drop a URL or ask me anything about your clips.</div></div>
+            </div>
+            <div class="cmd-input-row">
+              <input class="cmd-input" id="home-input" placeholder="Ask TakeKash..." onkeydown="if(event.key==='Enter')homeCmd()"/>
+              <button class="btn-gold" onclick="homeCmd()">→</button>
+            </div>
+          </div>
+        </div>
+        <div class="scrolly-text reveal reveal-delay-2">
+          <div class="section-label">GENERATIVE AI INTEGRATION</div>
+          <h2>Your personal <em style="color:var(--green)">AI producer.</em></h2>
+          <p>Tell TakeKash what you need in plain language. It searches your clips, builds posting schedules, generates SEO, and approves content for publishing — all from a single command.</p>
+          <p>No dashboards to learn. No buttons to click. Just say what you want.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING PREVIEW -->
+  <section class="pricing-section">
+    <div class="section-label reveal">PRICING</div>
+    <h2 class="section-title reveal reveal-delay-1">Start free. Scale when ready.</h2>
+    <div class="pricing-grid">
+      <div class="plan reveal reveal-delay-1"><h3>Free</h3><div class="plan-price">$0<span>/mo</span></div><div class="plan-desc">Try TakeKash with no commitment.</div><ul class="plan-features"><li>3 clips per month</li><li>720p vertical export</li><li>Karaoke captions</li><li>Basic SEO titles</li></ul><button class="btn-plan" onclick="alert('Sign up coming soon!')">Get started free</button></div>
+      <div class="plan featured reveal reveal-delay-2"><div class="plan-badge">MOST POPULAR</div><h3>Creator</h3><div class="plan-price">$19<span>/mo</span></div><div class="plan-desc">For streamers posting consistently.</div><ul class="plan-features"><li>50 clips per month</li><li>1080p vertical export</li><li>Full SEO engine</li><li>TikTok auto-queue</li><li>No ads</li></ul><button class="btn-plan" onclick="startCheckout('price_1TusrSEzp7cPN80JFqijvMhd')">Start Creator</button></div>
+      <div class="plan reveal reveal-delay-3"><h3>Pro</h3><div class="plan-price">$49<span>/mo</span></div><div class="plan-desc">High-volume creators and agencies.</div><ul class="plan-features"><li>Unlimited clips</li><li>1080p + 4K export</li><li>Priority processing</li><li>API access</li></ul><button class="btn-plan" onclick="startCheckout('price_1TusqeEzp7cPN80JyfdJhJSJ')">Start Pro</button></div>
+    </div>
+  </section>
+  <div class="glow-divider"></div>
+  <footer>
+    <div class="footer-links"><a href="#" onclick="showPage('pricing')">Pricing</a><a href="#" onclick="showPage('editflow')">EditFlow Pro</a><a href="#" onclick="showPage('console')">Console Supply</a><a href="#" onclick="showPage('privacy')">Privacy</a><a href="#" onclick="showPage('terms')">Terms</a></div>
+    <p>© 2026 TakeKash. All rights reserved.</p>
+  </footer>
+</div>
+
+<!-- EDITFLOW -->
+<div id="page-editflow" class="page">
+  <div class="page-content"><div class="section-label">EDITFLOW PRO</div><h1>Project management for freelance video editors.</h1><p class="subtitle">Client projects, revision rounds, deadlines, and invoices — all in one place.</p><div style="padding:40px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;text-align:center"><h3 style="margin-bottom:8px">Coming Q1 2027</h3><p style="color:var(--muted);margin-bottom:20px">Join the waitlist for early access.</p><button class="btn-gold" onclick="alert('Added!')">Join waitlist</button></div></div>
+  <footer><p>© 2026 TakeKash.</p></footer>
+</div>
+
+<!-- CONSOLE -->
+<div id="page-console" class="page">
+  <div class="page-content"><div class="section-label">CONSOLE SUPPLY CO.</div><h1>Gaming gear for serious streamers.</h1><p class="subtitle">Cables, capture cards, mounts, and accessories sourced for the creator setup.</p><div style="padding:40px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;text-align:center"><h3 style="margin-bottom:8px">Shop coming soon</h3><p style="color:var(--muted)">Real gear, real streamers.</p></div></div>
+  <footer><p>© 2026 TakeKash.</p></footer>
+</div>
+
+<!-- THUMBNAIL -->
+<div id="page-thumbnail" class="page">
+  <div class="page-content"><div class="section-label">AI THUMBNAIL GENERATOR</div><h1>Thumbnails that get clicked.</h1><p class="subtitle">AI selects the strongest frame, scores it, and generates a ready-to-post thumbnail.</p><div style="border:2px dashed var(--border);border-radius:10px;padding:60px 24px;text-align:center;cursor:pointer;transition:border-color .2s" onmouseenter="this.style.borderColor='var(--gold)'" onmouseleave="this.style.borderColor='var(--border)'"><h3 style="margin-bottom:8px">Drop a video frame or screenshot</h3><p style="font-size:14px;color:var(--muted);margin-bottom:20px">PNG, JPG, or MP4 · Max 50MB</p><button class="btn-gold">Select file</button></div></div>
+  <footer><p>© 2026 TakeKash.</p></footer>
+</div>
+
+<!-- COMMAND CENTER -->
+<div id="page-command" class="page">
+  <div class="page-content">
+    <div class="section-label">COMMAND CENTER</div><h1>Tell TakeKash what to do.</h1><p class="subtitle">Natural language commands. The AI handles the rest.</p>
+    <div class="cmd-interface">
+      <div class="cmd-header"><div class="cmd-dot green"></div> TAKEKASH COMMAND CENTER — GtaxZombies</div>
+      <div class="cmd-messages" id="cmd-messages">
+        <div class="msg"><div class="msg-label">TAKEKASH</div><div class="msg-bubble">What do you need? I can find clips, generate SEO metadata, check job status, approve clips for publishing, or build a posting schedule.</div></div>
+        <div class="msg user"><div class="msg-label">YOU</div><div class="msg-bubble">Find my best 5 Apex clips from this week</div></div>
+        <div class="msg"><div class="msg-label">TAKEKASH</div><div class="msg-bubble">Found 14 candidates. Top 5 by SEO score:<br/><br/>1. <strong>interview2_window12</strong> — SEO 96/100 · TikTok ready<br/>2. <strong>gtaxlong1_window03</strong> — SEO 94/100 · Instagram ready<br/>3. <strong>interview3_window07</strong> — SEO 93/100 · TikTok ready<br/>4. <strong>gtaxlong1_window08</strong> — SEO 92/100 · pending QC<br/>5. <strong>interview2_window24</strong> — SEO 91/100 · TikTok ready<br/><br/>Approve and schedule all 5?</div></div>
+      </div>
+      <div class="cmd-input-row"><input class="cmd-input" id="cmd-input" placeholder="Ask TakeKash anything..." onkeydown="if(event.key==='Enter')sendCmd()"/><button class="btn-gold" onclick="sendCmd()">Send</button></div>
+    </div>
+  </div>
+  <footer><p>© 2026 TakeKash.</p></footer>
+</div>
+
+<!-- PRICING PAGE -->
+<div id="page-pricing" class="page">
+  <div class="pricing-section" style="padding-top:100px">
+    <div class="section-label">PRICING</div><h2 class="section-title">Start free. Scale when ready.</h2>
+    <div class="pricing-grid">
+      <div class="plan"><h3>Free</h3><div class="plan-price">$0<span>/mo</span></div><div class="plan-desc">Try with no commitment.</div><ul class="plan-features"><li>3 clips/month</li><li>720p export</li><li>Karaoke captions</li><li>Basic SEO</li></ul><button class="btn-plan" onclick="alert('Coming soon!')">Get started</button></div>
+      <div class="plan featured"><div class="plan-badge">MOST POPULAR</div><h3>Creator</h3><div class="plan-price">$19<span>/mo</span></div><div class="plan-desc">For streamers posting consistently.</div><ul class="plan-features"><li>50 clips/month</li><li>1080p export</li><li>Full SEO engine</li><li>TikTok auto-queue</li><li>Instagram ready</li><li>No ads</li></ul><button class="btn-plan" onclick="startCheckout('price_1TusrSEzp7cPN80JFqijvMhd')">Start Creator</button></div>
+      <div class="plan"><h3>Pro</h3><div class="plan-price">$49<span>/mo</span></div><div class="plan-desc">High-volume creators and agencies.</div><ul class="plan-features"><li>Unlimited clips</li><li>1080p + 4K</li><li>Priority processing</li><li>API access</li><li>White-label exports</li></ul><button class="btn-plan" onclick="startCheckout('price_1TusqeEzp7cPN80JyfdJhJSJ')">Start Pro</button></div>
+    </div>
+  </div>
+  <footer><p>© 2026 TakeKash.</p></footer>
+</div>
+
+<!-- PRIVACY -->
+<div id="page-privacy" class="page">
+  <div class="page-content"><div class="section-label">LEGAL</div><h1>Privacy Policy</h1><p class="subtitle">Last updated: September 12, 2026</p><div class="legal-content"><h2>1. Information We Collect</h2><p>When you use TakeKash, we collect information you provide directly, usage data, and information from third-party services you submit URLs for.</p><h2>2. How We Use It</h2><p>To process video URLs, improve our services, communicate about your account, and comply with legal obligations.</p><h2>3. Data Storage</h2><p>Clips stored 30 days on paid plans, 7 days on Free, then permanently deleted unless downloaded.</p><h2>4. Contact</h2><p>privacy@takekash.com</p></div></div>
+  <footer><p>© 2026 TakeKash.</p></footer>
+</div>
+
+<!-- TERMS -->
+<div id="page-terms" class="page">
+  <div class="page-content"><div class="section-label">LEGAL</div><h1>Terms of Service</h1><p class="subtitle">Last updated: September 12, 2026</p><div class="legal-content"><h2>1. Acceptance</h2><p>By using TakeKash, you agree to these Terms.</p><h2>2. Use</h2><p>Only submit URLs to content you have rights to process.</p><h2>3. Content Ownership</h2><p>You retain ownership of all content you submit and all clips generated from it.</p><h2>4. Contact</h2><p>legal@takekash.com</p></div></div>
+  <footer><p>© 2026 TakeKash.</p></footer>
+</div>
+
+<script>
+// THREE.JS PARTICLE FIELD
+(function(){
+  const c=document.getElementById('hero-canvas');
+  if(!c||typeof THREE==='undefined')return;
+  const r=new THREE.WebGLRenderer({canvas:c,antialias:true,alpha:true});
+  r.setPixelRatio(Math.min(devicePixelRatio,2));
+  r.setSize(innerWidth,innerHeight);
+  const s=new THREE.Scene();
+  const cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,100);
+  cam.position.z=3;
+  const N=900,geo=new THREE.BufferGeometry();
+  const pos=new Float32Array(N*3),col=new Float32Array(N*3);
+  for(let i=0;i<N;i++){
+    pos[i*3]=(Math.random()-.5)*14;pos[i*3+1]=(Math.random()-.5)*9;pos[i*3+2]=(Math.random()-.5)*7;
+    const g=Math.random()>.65;
+    col[i*3]=g?.96:.05;col[i*3+1]=g?.65:.85;col[i*3+2]=g?.14:.35;
+  }
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  geo.setAttribute('color',new THREE.BufferAttribute(col,3));
+  const pts=new THREE.Points(geo,new THREE.PointsMaterial({size:.035,vertexColors:true,transparent:true,opacity:.65}));
+  s.add(pts);
+  let mx=0,my=0;
+  document.addEventListener('mousemove',e=>{mx=(e.clientX/innerWidth-.5)*.25;my=(e.clientY/innerHeight-.5)*.15;});
+  let f=0,running=true;
+  function tick(){
+    if(!running)return;
+    if(!document.getElementById('page-home').classList.contains('active')){running=false;return;}
+    requestAnimationFrame(tick);f++;
+    pts.rotation.y+=.0003+mx*.008;pts.rotation.x+=.0001+my*.008;
+    pts.rotation.z=Math.sin(f*.001)*.04;
+    r.render(s,cam);
+  }
+  tick();
+  window.addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();r.setSize(innerWidth,innerHeight);});
+  window._startParticles=()=>{if(!running){running=true;tick();}};
+})();
+
+// SCROLL REVEAL
+const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+// COUNTERS
+const cobs=new IntersectionObserver(es=>{
+  es.forEach(e=>{
+    if(e.isIntersecting){
+      cnt('c1',2847,1500);cnt('c2',94,1200,'/100');cnt('c3',18,900);cnt('c4',40,1400,'h');
+      cobs.disconnect();
+    }
+  });
+},{threshold:.3});
+const ce=document.getElementById('c1');
+if(ce)cobs.observe(ce.closest('.scrolly-visual')||ce);
+
+function cnt(id,target,dur,sfx=''){
+  const el=document.getElementById(id);if(!el)return;
+  const t0=Date.now();
+  const tick=()=>{const p=Math.min((Date.now()-t0)/dur,1);el.textContent=Math.floor((1-Math.pow(1-p,3))*target)+sfx;if(p<1)requestAnimationFrame(tick);};
+  tick();
+}
+
+// CARD GLOW
+function glow(e,el){
+  const rc=el.getBoundingClientRect();
+  el.style.setProperty('--mx',((e.clientX-rc.left)/rc.width*100)+'%');
+  el.style.setProperty('--my',((e.clientY-rc.top)/rc.height*100)+'%');
+}
+
+// NAV SCROLL
+window.addEventListener('scroll',()=>{
+  const n=document.getElementById('main-nav');
+  if(n)n.style.background=scrollY>50?'rgba(8,8,8,.98)':'rgba(8,8,8,.85)';
+});
+
+// ROUTING
+const pages=['home','editflow','console','thumbnail','command','pricing','privacy','terms'];
+function showPage(id){
+  pages.forEach(p=>{
+    document.getElementById('page-'+p).classList.remove('active');
+    const n=document.getElementById('nav-'+p);if(n)n.classList.remove('active');
+  });
+  document.getElementById('page-'+id).classList.add('active');
+  const n=document.getElementById('nav-'+id);if(n)n.classList.add('active');
+  window.scrollTo(0,0);closeMenu();
+  if(id==='home'&&window._startParticles)window._startParticles();
+  document.querySelectorAll('#page-'+id+' .reveal').forEach(el=>obs.observe(el));
+}
+function toggleMenu(){document.getElementById('mobile-menu').classList.toggle('open');}
+function closeMenu(){document.getElementById('mobile-menu').classList.remove('open');}
+function submitUrl(){const u=document.getElementById('hero-url').value.trim();if(!u){document.getElementById('hero-url').focus();return;}showPage('command');}
+
+// STRIPE
+async function startCheckout(priceId){
+  const btn=event.target;const orig=btn.textContent;btn.textContent='Loading...';btn.disabled=true;
+  try{
+    const d=await fetch('/api/create-checkout-session',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({priceId})}).then(r=>r.json());
+    if(d.url){window.location.href=d.url;return;}throw new Error(d.error||'Unknown error');
+  }catch(e){alert('Checkout: '+e.message);btn.textContent=orig;btn.disabled=false;}
+}
+
+// CMD RESPONSES
+const R=['Found 8 clips. Highest SEO: 96/100 on interview2_window12. Approve top 5?','Done — 5 clips queued. TikTok posts tomorrow 2PM, 4PM, 6PM, 8PM, 10PM.','Status: 2 jobs processing, 54 clips ready, 35 approved for publishing.','QC passed. All clips: 1080×1920, h264, AAC, no black frames, audio normal.','SEO package generated. Average score: 94/100. Ready to post.'];
+let ri=0;
+function _cmd(inputId,msgId){
+  const inp=document.getElementById(inputId);const msgs=document.getElementById(msgId);
+  const t=inp.value.trim();if(!t)return;
+  const u=document.createElement('div');u.className='msg user';u.innerHTML='<div class="msg-label">YOU</div><div class="msg-bubble">'+t+'</div>';
+  msgs.appendChild(u);inp.value='';
+  setTimeout(()=>{const d=document.createElement('div');d.className='msg';d.innerHTML='<div class="msg-label">TAKEKASH</div><div class="msg-bubble">'+R[ri++%R.length]+'</div>';msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;},600);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+function sendCmd(){_cmd('cmd-input','cmd-messages');}
+function homeCmd(){_cmd('home-input','home-msgs');}
+</script>
+</body>
+</html>
