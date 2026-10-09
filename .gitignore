@@ -3,3 +3,6 @@
 node_modules/
 *.env
 .env.*
+clips/
+*.mp4
+*.mov
