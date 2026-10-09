@@ -1,0 +1,606 @@
+{
+  "generated_at": "2026-09-16T02:51:34.772553+00:00",
+  "jobs": [
+    {
+      "job_id": "job1786627920",
+      "game": "Apex Legends",
+      "clip_count": 16,
+      "status_counts": {
+        "ready": 16
+      },
+      "first_created_at": "2026-09-11 18:07:56",
+      "last_created_at": "2026-09-11 18:07:56"
+    },
+    {
+      "job_id": "job1786890425",
+      "game": "EA Sports FC",
+      "clip_count": 1,
+      "status_counts": {
+        "ready": 1
+      },
+      "first_created_at": "2026-09-11 18:07:56",
+      "last_created_at": "2026-09-11 18:07:56"
+    },
+    {
+      "job_id": "job1788368131",
+      "game": null,
+      "clip_count": 18,
+      "status_counts": {
+        "disqualified": 18
+      },
+      "first_created_at": "2026-09-11 18:07:56",
+      "last_created_at": "2026-09-11 18:07:56"
+    },
+    {
+      "job_id": "job1788482095",
+      "game": null,
+      "clip_count": 35,
+      "status_counts": {
+        "disqualified": 35
+      },
+      "first_created_at": "2026-09-11 18:07:56",
+      "last_created_at": "2026-09-11 18:07:56"
+    },
+    {
+      "job_id": "apexnba2k2",
+      "game": null,
+      "clip_count": 17,
+      "status_counts": {
+        "disqualified": 17
+      },
+      "first_created_at": "2026-09-11 18:07:56",
+      "last_created_at": "2026-09-11 18:07:56"
+    }
+  ],
+  "posts": {
+    "by_status": {
+      "published": 17,
+      "blocked": 9,
+      "error": 69,
+      "pending": 57
+    },
+    "by_platform": {
+      "youtube": 26,
+      "tiktok": 63,
+      "instagram": 63
+    },
+    "total": 152,
+    "recent": [
+      {
+        "platform": "youtube",
+        "title": "We Got Took Out By One F***ing Gun - Crazy Loadout Gaming Voice Chat Clip",
+        "status": "published",
+        "scheduled_for": "2026-08-14T14:00:00",
+        "published_at": null,
+        "created_at": "2026-09-11 18:07:56"
+      },
+      {
+        "platform": "youtube",
+        "title": "Battle Royale Squad Gameplay: Ring Closing, Care Package & Third Party Fight",
+        "status": "published",
+        "scheduled_for": "2026-08-14T19:00:00",
+        "published_at": null,
+        "created_at": "2026-09-11 18:07:56"
+      },
+      {
+        "platform": "youtube",
+        "title": "Apex Legends Squad Gameplay - Funny Moments, Ring Chases & Replicator Loot",
+        "status": "published",
+        "scheduled_for": "2026-08-15T14:00:00",
+        "published_at": null,
+        "created_at": "2026-09-11 18:07:56"
+      },
+      {
+        "platform": "youtube",
+        "title": "Apex Legends Gameplay: Care Package Drop, Shield Charging & Loot Run",
+        "status": "published",
+        "scheduled_for": "2026-08-15T19:00:00",
+        "published_at": null,
+        "created_at": "2026-09-11 18:07:56"
+      },
+      {
+        "platform": "youtube",
+        "title": "\"Reloading Meg!\" Artillery Gameplay - Target Marked, Send It!",
+        "status": "published",
+        "scheduled_for": "2026-08-16T14:00:00",
+        "published_at": null,
+        "created_at": "2026-09-11 18:07:56"
+      },
+      {
+        "platform": "youtube",
+        "title": "Dramatic & Suspenseful Music Background - No Dialogue Video Clip",
+        "status": "published",
+        "scheduled_for": "2026-08-16T19:00:00",
+        "published_at": null,
+        "created_at": "2026-09-11 18:07:56"
+      },
+      {
+        "platform": "youtube",
+        "title": "Fortnite Gameplay - Thermite, Shield Recharge & Storm Chaos!",
+        "status": "published",
+        "scheduled_for": "2026-08-19T14:00:00",
+        "published_at": null,
+        "created_at": "2026-09-11 18:07:56"
+      },
+      {
+        "platform": "youtube",
+        "title": "Ready to Use It: Ring With 45 to Close - Clip Explained",
+        "status": "published",
+        "scheduled_for": "2026-08-19T19:00:00",
+        "published_at": null,
+        "created_at": "2026-09-11 18:07:56"
+      },
+      {
+        "platform": "youtube",
+        "title": "Poke Chop Won't Get Up! Funny Squad Rage Voice Chat Moment",
+        "status": "published",
+        "scheduled_for": "2026-08-20T14:00:00",
+        "published_at": null,
+        "created_at": "2026-09-11 18:07:56"
+      },
+      {
+        "platform": "youtube",
+        "title": "Team 2K TV vs Team Maysak - NBA 2K Pro-Am Challenge ft. Memphis Grizzlies Rookie",
+        "status": "published",
+        "scheduled_for": "2026-08-20T19:00:00",
+        "published_at": null,
+        "created_at": "2026-09-11 18:07:56"
+      },
+      {
+        "platform": "youtube",
+        "title": "Heated Pickup Basketball Trash Talk - Streetball Game Gets Wild",
+        "status": "published",
+        "scheduled_for": "2026-08-21T14:00:00",
+        "published_at": null,
+        "created_at": "2026-09-11 18:07:56"
+      },
+      {
+        "platform": "youtube",
+        "title": "NBA 2K Trash Talk: Center Gets Roasted for Trash Stats & Missed Shots",
+        "status": "published",
+        "scheduled_for": "2026-08-21T19:00:00",
+        "published_at": null,
+        "created_at": "2026-09-11 18:07:56"
+      },
+      {
+        "platform": "youtube",
+        "title": "Trash Talk Pickup Basketball Game - Heated Beef & Smack Talk Courtside",
+        "status": "published",
+        "scheduled_for": "2026-08-22T14:00:00",
+        "published_at": null,
+        "created_at": "2026-09-11 18:07:56"
+      },
+      {
+        "platform": "youtube",
+        "title": "Bro Gets Mad Over the Ball - \"What The F*** I've\" Reaction Clip",
+        "status": "published",
+        "scheduled_for": "2026-08-22T19:00:00",
+        "published_at": null,
+        "created_at": "2026-09-11 18:07:56"
+      },
+      {
+        "platform": "youtube",
+        "title": "Fortnite Gameplay: Care Package, Decoy Drop & Level Up Upgrade Moments",
+        "status": "published",
+        "scheduled_for": "2026-08-23T14:00:00",
+        "published_at": null,
+        "created_at": "2026-09-11 18:07:56"
+      },
+      {
+        "platform": "youtube",
+        "title": "\"Can't Let Down My Fans\" - Fan Art Reaction Moment",
+        "status": "published",
+        "scheduled_for": "2026-08-23T19:00:00",
+        "published_at": null,
+        "created_at": "2026-09-11 18:07:56"
+      },
+      {
+        "platform": "youtube",
+        "title": "CLUTCH: The Show Fought Like A Court Could He Say",
+        "status": "published",
+        "scheduled_for": "2026-08-24T14:00:00",
+        "published_at": null,
+        "created_at": "2026-09-11 18:07:56"
+      },
+      {
+        "platform": "youtube",
+        "title": "Activist Arrested After Church Disruption Stunt Sparks Free Speech Debate",
+        "status": "blocked",
+        "scheduled_for": "2026-09-02T19:00:00",
+        "published_at": null,
+        "created_at": "2026-09-11 18:07:56"
+      },
+      {
+        "platform": "youtube",
+        "title": "X Suspended My Account After I Beat Grok in an Argument",
+        "status": "blocked",
+        "scheduled_for": "2026-09-03T14:00:00",
+        "published_at": null,
+        "created_at": "2026-09-11 18:07:56"
+      },
+      {
+        "platform": "youtube",
+        "title": "Media Propaganda Tactic Explained: The 'Big Lie' and Manufactured Outrage",
+        "status": "blocked",
+        "scheduled_for": "2026-09-03T19:00:00",
+        "published_at": null,
+        "created_at": "2026-09-11 18:07:56"
+      },
+      {
+        "platform": "youtube",
+        "title": "Villain Is the Hero: Commentary on Blackmail, Fame & Emulating Celebrities",
+        "status": "blocked",
+        "scheduled_for": "2026-09-04T14:00:00",
+        "published_at": null,
+        "created_at": "2026-09-11 18:07:56"
+      },
+      {
+        "platform": "youtube",
+        "title": "Jack Johnson, the Mann Act & J. Edgar Hoover: The Real Origin of the FBI",
+        "status": "blocked",
+        "scheduled_for": "2026-09-04T19:00:00",
+        "published_at": null,
+        "created_at": "2026-09-11 18:07:56"
+      },
+      {
+        "platform": "youtube",
+        "title": "Judge Judy Explains Why TV Court Shows Are Legally Binding Arbitration",
+        "status": "blocked",
+        "scheduled_for": "2026-09-05T14:00:00",
+        "published_at": null,
+        "created_at": "2026-09-11 18:07:56"
+      },
+      {
+        "platform": "youtube",
+        "title": "TV Judge Exposes Real Chop Shop, Welfare Fraud & Arson Cases On His Court Show",
+        "status": "blocked",
+        "scheduled_for": "2026-09-05T19:00:00",
+        "published_at": null,
+        "created_at": "2026-09-11 18:07:56"
+      },
+      {
+        "platform": "tiktok",
+        "title": "Mr. Luma's Church Stunt: Free Speech or Straight-Up Fraud?",
+        "status": "error",
+        "scheduled_for": "2026-09-05T12:36:29.039838",
+        "published_at": null,
+        "created_at": "2026-09-11 18:07:56"
+      }
+    ]
+  },
+  "queue": {
+    "status_counts": {
+      "approved": 21,
+      "error": 2,
+      "pending": 104
+    },
+    "total": 127,
+    "upcoming": [
+      {
+        "platform": "instagram",
+        "content_id": "interviewtest_window11_instagram",
+        "title": "Bobby's Real Story: The Rapper Who Helped Before He Passed",
+        "scheduled_time": "2026-09-12T15:27:57.883819",
+        "status": "approved",
+        "seo_total": 86
+      },
+      {
+        "platform": "tiktok",
+        "content_id": "interviewtest_window12_tiktok",
+        "title": "Did Bobby Really Stab Mo3 In The Back? The Truth Comes Out",
+        "scheduled_time": "2026-09-12T16:29:04.018438",
+        "status": "approved",
+        "seo_total": 85
+      },
+      {
+        "platform": "tiktok",
+        "content_id": "interviewtest_window14_tiktok",
+        "title": "NBA YoungBoy, Kodak Black & Why Beef Makes Rappers Go Harder",
+        "scheduled_time": "2026-09-12T16:56:35.853816",
+        "status": "approved",
+        "seo_total": 85
+      },
+      {
+        "platform": "instagram",
+        "content_id": "interviewtest_window14_instagram",
+        "title": "NBA YoungBoy, Kodak Black & Trump Stimulus Talk \u2013 Real Podcast Convo",
+        "scheduled_time": "2026-09-12T17:56:35.853816",
+        "status": "approved",
+        "seo_total": 85
+      },
+      {
+        "platform": "tiktok",
+        "content_id": "interviewtest_window13_tiktok",
+        "title": "Mo3's Empire Deal & Life After His Passing: The Real Story",
+        "scheduled_time": "2026-09-12T18:31:25.287574",
+        "status": "approved",
+        "seo_total": 86
+      },
+      {
+        "platform": "tiktok",
+        "content_id": "interviewtest_window16_tiktok",
+        "title": "Why NFL Players Rap for Clout & The Truth About Label Deals",
+        "scheduled_time": "2026-09-12T21:01:09.709165",
+        "status": "approved",
+        "seo_total": 85
+      },
+      {
+        "platform": "tiktok",
+        "content_id": "interviewtest_window17_tiktok",
+        "title": "Why Every Rapper Needs a Team (Or They Go Broke)",
+        "scheduled_time": "2026-09-12T23:02:30.388987",
+        "status": "approved",
+        "seo_total": 86
+      },
+      {
+        "platform": "tiktok",
+        "content_id": "interviewtest_window18_tiktok",
+        "title": "He Cut Off His Ankle Monitor To Make A Song... Then Got 50 Years",
+        "scheduled_time": "2026-09-13T01:03:45.600474",
+        "status": "approved",
+        "seo_total": 86
+      },
+      {
+        "platform": "tiktok",
+        "content_id": "interviewtest_window19_tiktok",
+        "title": "Kanye West Promised $50 Million to the Guy Who Named Him 'Ye'?",
+        "scheduled_time": "2026-09-13T03:06:02.131866",
+        "status": "approved",
+        "seo_total": 85
+      },
+      {
+        "platform": "instagram",
+        "content_id": "interviewtest_window17_instagram",
+        "title": "Kevin Gates Apology, Antonio Brown CTE Talk & Athletes Rapping",
+        "scheduled_time": "2026-09-13T03:40:24.460362",
+        "status": "approved",
+        "seo_total": 85
+      },
+      {
+        "platform": "tiktok",
+        "content_id": "interviewtest_window20_tiktok",
+        "title": "Will Smith & The Baddest Bitch In The Game... This Hit Different \ud83d\ude33",
+        "scheduled_time": "2026-09-13T05:08:12.593534",
+        "status": "approved",
+        "seo_total": 86
+      },
+      {
+        "platform": "instagram",
+        "content_id": "interviewtest_window18_instagram",
+        "title": "Why Athletes Turned Rappers Never Get Real Respect",
+        "scheduled_time": "2026-09-13T05:42:34.834183",
+        "status": "approved",
+        "seo_total": 88
+      },
+      {
+        "platform": "tiktok",
+        "content_id": "interviewtest_window21_tiktok",
+        "title": "He Wants To Move The Super Bowl To Dallas & Bring Trump Back",
+        "scheduled_time": "2026-09-13T07:09:20.675454",
+        "status": "approved",
+        "seo_total": 86
+      },
+      {
+        "platform": "tiktok",
+        "content_id": "interviewtest_window22_tiktok",
+        "title": "Kobe Bryant Would NEVER Date a Wild Industry Woman? Street Debate",
+        "scheduled_time": "2026-09-13T09:11:38.772413",
+        "status": "approved",
+        "seo_total": 89
+      },
+      {
+        "platform": "instagram",
+        "content_id": "interviewtest_window20_instagram",
+        "title": "Kanye West & Benny the Butcher: The $50 Million Opportunity Talk",
+        "scheduled_time": "2026-09-13T09:46:56.970362",
+        "status": "approved",
+        "seo_total": 85
+      },
+      {
+        "platform": "instagram",
+        "content_id": "interviewtest_window22_instagram",
+        "title": "Street Interview: Kobe Bryant, Kanye West & Industry Women Loyalty Debate",
+        "scheduled_time": "2026-09-13T10:11:38.772413",
+        "status": "approved",
+        "seo_total": 85
+      },
+      {
+        "platform": "tiktok",
+        "content_id": "interviewtest_window23_tiktok",
+        "title": "No Contract, No Problem: Music Contracts, Unreleased Albums & Super Bowl Weekend in Dallas",
+        "scheduled_time": "2026-09-13T11:13:41.927876",
+        "status": "approved",
+        "seo_total": 86
+      },
+      {
+        "platform": "instagram",
+        "content_id": "interviewtest_window21_instagram",
+        "title": "Raising a Daughter in the Instagram & OnlyFans Era: Real Talk",
+        "scheduled_time": "2026-09-13T11:48:44.439841",
+        "status": "approved",
+        "seo_total": 85
+      },
+      {
+        "platform": "tiktok",
+        "content_id": "interviewtest_window24_tiktok",
+        "title": "He's Being Compared to Mo3 Over the 'Freeze' Song Controversy",
+        "scheduled_time": "2026-09-13T13:16:04.858696",
+        "status": "approved",
+        "seo_total": 85
+      },
+      {
+        "platform": "instagram",
+        "content_id": "interviewtest_window23_instagram",
+        "title": "Street Interview: Trump Talk, Kobe Bryant & Industry Women Loyalty",
+        "scheduled_time": "2026-09-13T15:51:56.471216",
+        "status": "approved",
+        "seo_total": 85
+      },
+      {
+        "platform": "tiktok",
+        "content_id": "interviewtest_window25_tiktok",
+        "title": "They Tried to Steal Motory's Song\u2026 Here's the Real Story",
+        "scheduled_time": "2026-09-13T18:56:36.830958",
+        "status": "approved",
+        "seo_total": 86
+      },
+      {
+        "platform": "instagram",
+        "content_id": "apexnba2k2_window02_instagram",
+        "title": "48 Houses in 2 Months: Prison to Becoming a Rap Manager",
+        "scheduled_time": "2026-09-16T09:00:00",
+        "status": "pending",
+        "seo_total": null
+      },
+      {
+        "platform": "tiktok",
+        "content_id": "apexnba2k2_window02_tiktok",
+        "title": "48 Houses in 2 Months to Managing Mo3: His Wild True Story",
+        "scheduled_time": "2026-09-16T10:00:00",
+        "status": "pending",
+        "seo_total": null
+      },
+      {
+        "platform": "instagram",
+        "content_id": "apexnba2k2_window03_instagram",
+        "title": "Dallas Rap Talk: Mo3's Rise, Studio Grind & Facing the Hate",
+        "scheduled_time": "2026-09-16T12:00:00",
+        "status": "pending",
+        "seo_total": null
+      },
+      {
+        "platform": "tiktok",
+        "content_id": "apexnba2k2_window03_tiktok",
+        "title": "Mo3's Come Up: Dallas' Best-Selling Rapper Ever?",
+        "scheduled_time": "2026-09-16T13:00:00",
+        "status": "pending",
+        "seo_total": null
+      },
+      {
+        "platform": "instagram",
+        "content_id": "apexnba2k2_window04_instagram",
+        "title": "MO3, Yella Beezy & Trap Boy Freddy: The Dallas Rap Divide Explained",
+        "scheduled_time": "2026-09-16T18:00:00",
+        "status": "pending",
+        "seo_total": null
+      },
+      {
+        "platform": "tiktok",
+        "content_id": "apexnba2k2_window04_tiktok",
+        "title": "The Real Story Behind Mo3 vs Yella Beezy & Trap Boy's Dallas Beef",
+        "scheduled_time": "2026-09-16T20:00:00",
+        "status": "pending",
+        "seo_total": null
+      },
+      {
+        "platform": "instagram",
+        "content_id": "apexnba2k2_window05_instagram",
+        "title": "Mo3's Chain Robbery, Jail Time & Dallas Ban Story",
+        "scheduled_time": "2026-09-17T09:00:00",
+        "status": "pending",
+        "seo_total": null
+      },
+      {
+        "platform": "tiktok",
+        "content_id": "apexnba2k2_window05_tiktok",
+        "title": "Mo3's Wild Story: Chain Snatched, Banned From Dallas & Jail Time",
+        "scheduled_time": "2026-09-17T10:00:00",
+        "status": "pending",
+        "seo_total": null
+      },
+      {
+        "platform": "instagram",
+        "content_id": "apexnba2k2_window06_instagram",
+        "title": "Mo3's Death, Boosie Album & Dallas Radio Backlash - Real Talk",
+        "scheduled_time": "2026-09-17T12:00:00",
+        "status": "pending",
+        "seo_total": null
+      },
+      {
+        "platform": "tiktok",
+        "content_id": "apexnba2k2_window06_tiktok",
+        "title": "The Last Call With Mo3 Before He Was Killed",
+        "scheduled_time": "2026-09-17T13:00:00",
+        "status": "pending",
+        "seo_total": null
+      },
+      {
+        "platform": "instagram",
+        "content_id": "apexnba2k2_window07_instagram",
+        "title": "Mo3 & Boosie: The Real Story Behind Bobby's Betrayal",
+        "scheduled_time": "2026-09-17T18:00:00",
+        "status": "pending",
+        "seo_total": null
+      },
+      {
+        "platform": "tiktok",
+        "content_id": "apexnba2k2_window07_tiktok",
+        "title": "Did Bobby Bandz Betray Mo3? The Real Story Behind Boosie's Freestyle",
+        "scheduled_time": "2026-09-17T20:00:00",
+        "status": "pending",
+        "seo_total": null
+      },
+      {
+        "platform": "instagram",
+        "content_id": "apexnba2k2_window08_instagram",
+        "title": "Mo3's Legacy: Life After His Passing in Dallas, Texas",
+        "scheduled_time": "2026-09-18T09:00:00",
+        "status": "pending",
+        "seo_total": null
+      },
+      {
+        "platform": "tiktok",
+        "content_id": "apexnba2k2_window08_tiktok",
+        "title": "Life After Mo3 Passed Away: His Team Opens Up on Dallas & EMPIRE",
+        "scheduled_time": "2026-09-18T10:00:00",
+        "status": "pending",
+        "seo_total": null
+      },
+      {
+        "platform": "instagram",
+        "content_id": "apexnba2k2_window09_instagram",
+        "title": "Why Street Rappers Don't Make It \u2014 Boosie Talk & Rap Game Truths",
+        "scheduled_time": "2026-09-18T12:00:00",
+        "status": "pending",
+        "seo_total": null
+      },
+      {
+        "platform": "tiktok",
+        "content_id": "apexnba2k2_window09_tiktok",
+        "title": "Why Street Rappers Don't Make It & How Boosie Turned Hype Into Hustle",
+        "scheduled_time": "2026-09-18T13:00:00",
+        "status": "pending",
+        "seo_total": null
+      },
+      {
+        "platform": "instagram",
+        "content_id": "apexnba2k2_window10_instagram",
+        "title": "Paying $100K for a Kevin Gates Feature ft. Mo3 & DaBaby Stories",
+        "scheduled_time": "2026-09-18T18:00:00",
+        "status": "pending",
+        "seo_total": null
+      },
+      {
+        "platform": "tiktok",
+        "content_id": "apexnba2k2_window10_tiktok",
+        "title": "Spent Motown's Whole Album Budget on Kevin Gates - Was It Worth It?",
+        "scheduled_time": "2026-09-18T20:00:00",
+        "status": "pending",
+        "seo_total": null
+      },
+      {
+        "platform": "instagram",
+        "content_id": "apexnba2k2_window11_instagram",
+        "title": "Kodak Black, Trump & Charleston White: Rap Controversy Talk",
+        "scheduled_time": "2026-09-19T09:00:00",
+        "status": "pending",
+        "seo_total": null
+      }
+    ]
+  },
+  "totals": {
+    "clips": 87,
+    "social_posts": 152,
+    "queue_items": 127
+  }
+}
