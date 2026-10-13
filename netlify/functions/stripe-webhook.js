@@ -9,6 +9,7 @@
 //   RESEND_API_KEY          from resend.com
 //   FROM_EMAIL              e.g. "EditFlow <hello@yourdomain.com>" (domain verified in Resend)
 //   OWNER_EMAIL             where YOU get the "new customer" alert
+//   REPLY_TO                (optional) where buyer replies go; defaults to OWNER_EMAIL
 //   APP_ACCESS_URL          (optional) link to the app; if unset, the buyer is told access follows personally
 //   EDITFLOW_PAYMENT_LINK_ID (optional) plink_... to pin this to one specific payment link
 
@@ -47,11 +48,11 @@ function verifyStripeSignature(rawBody, header, secret) {
 const esc = (s) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-async function sendEmail({ to, subject, html }) {
+async function sendEmail({ to, subject, html, replyTo }) {
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: process.env.FROM_EMAIL, to, subject, html }),
+    body: JSON.stringify({ from: process.env.FROM_EMAIL, to, subject, html, ...(replyTo ? { reply_to: replyTo } : {}) }),
   });
   if (!res.ok) throw new Error(`Resend ${res.status}: ${await res.text()}`);
 }
@@ -108,6 +109,7 @@ exports.handler = async (event) => {
     try {
       await sendEmail({
         to: email,
+        replyTo: process.env.REPLY_TO || process.env.OWNER_EMAIL,
         subject: "You're in — EditFlow Pro",
         html: `<p>Hey ${esc(name)},</p>
                <p>Thanks for subscribing to EditFlow Pro${amount ? ` (${esc(amount)}/mo)` : ""}. Your payment went through.</p>
