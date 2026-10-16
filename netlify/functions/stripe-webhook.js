@@ -77,6 +77,26 @@ exports.handler = async (event) => {
   if (evt.type !== "checkout.session.completed") return { statusCode: 200, body: "ignored" };
 
   const s = evt.data.object;
+
+  // Clip-tool (TakeKash) sale: created by /api/create-checkout-session, tagged metadata.product=takekash.
+  // No buyer email is defined for it yet, so just alert the owner. Fail with 500 so Stripe retries.
+  if (s.metadata && s.metadata.product === "takekash") {
+    const who = (s.customer_details && s.customer_details.email) || "(no email)";
+    const amt = typeof s.amount_total === "number" ? `$${(s.amount_total / 100).toFixed(2)}` : "";
+    try {
+      await sendEmail({
+        to: process.env.OWNER_EMAIL,
+        subject: `New TakeKash subscriber: ${who}`,
+        html: `<p><b>New TakeKash (clip tool) subscriber</b></p>
+               <p>Email: ${esc(who)}<br>Amount: ${esc(amt)}<br>Subscription: ${esc(s.subscription)}<br>Session: ${esc(s.id)}</p>`,
+      });
+    } catch (err) {
+      console.error("Owner alert (TakeKash) failed:", err);
+      return { statusCode: 500, body: "owner alert failed" };
+    }
+    return { statusCode: 200, body: "ok" };
+  }
+
   const pinned = process.env.EDITFLOW_PAYMENT_LINK_ID;
   if (!s.payment_link || (pinned && s.payment_link !== pinned)) {
     return { statusCode: 200, body: "not an EditFlow payment link" };

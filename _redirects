@@ -1,2 +1,3 @@
 /privacy  /privacy-policy  301
 /terms  /terms-of-service  301
+/api/create-checkout-session  /.netlify/functions/create-checkout-session  200
