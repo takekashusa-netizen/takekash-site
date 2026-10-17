@@ -10,7 +10,8 @@
 //   FROM_EMAIL              e.g. "EditFlow <hello@yourdomain.com>" (domain verified in Resend)
 //   OWNER_EMAIL             where YOU get the "new customer" alert
 //   REPLY_TO                (optional) where buyer replies go; defaults to OWNER_EMAIL
-//   APP_ACCESS_URL          (optional) link to the app; if unset, the buyer is told access follows personally
+//   APP_ACCESS_URL          (optional) link to the app; also derives the Starter Pack link (<url>/starter-pack/). If unset, the buyer is told access follows personally
+//   PACK_URL                (optional) override the Starter Pack link
 //   EDITFLOW_PAYMENT_LINK_ID (optional) plink_... to pin this to one specific payment link
 
 const crypto = require("crypto");
@@ -123,8 +124,12 @@ exports.handler = async (event) => {
   // 2) Confirm to the buyer. A failure here is logged, not retried (avoids duplicate owner alerts).
   if (email) {
     const appUrl = process.env.APP_ACCESS_URL;
+    // Starter Pack lives at <app url>/starter-pack/ (override with PACK_URL if it ever moves)
+    const packUrl = process.env.PACK_URL || (appUrl ? appUrl.replace(/\/?$/, "/") + "starter-pack/" : "");
     const access = appUrl
-      ? `<p><a href="${esc(appUrl)}">Open EditFlow →</a></p>`
+      ? `<p><a href="${esc(appUrl)}">Open EditFlow →</a></p>
+         <p>Your <b>Starter Pack</b> is included: templates for finding clients, quotes, revisions, invoices and late payments, plus a quote calculator.<br>
+         <a href="${esc(packUrl)}">Open the Starter Pack →</a></p>`
       : `<p>I'll send your access details personally within 24 hours.</p>`;
     try {
       await sendEmail({

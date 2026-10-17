@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>EditFlow Starter Pack</title>
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<style>
+:root{--bg:#020617;--surface:#0f172a;--surface2:#141d31;--border:#1e293b;--text:#f1f5f9;--muted:#94a3b8;--faint:#64748b;--accent:#e11d48;--accent-b:#fb7185;--ok:#10b981}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:Inter,'Helvetica Neue',Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:820px;margin:0 auto;padding:40px 20px 80px}
+a{color:var(--accent-b)}
+header{margin-bottom:36px}
+.tag{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--accent-b);letter-spacing:.04em}
+h1{font-size:clamp(28px,5vw,40px);line-height:1.15;margin:8px 0 12px;letter-spacing:-.02em}
+.lead{color:var(--muted);max-width:620px}
+nav.toc{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 0}
+nav.toc a{font-size:13px;text-decoration:none;color:var(--muted);border:1px solid var(--border);padding:6px 12px;border-radius:100px}
+nav.toc a:hover{color:var(--text);border-color:var(--accent-b)}
+section{border-top:1px solid var(--border);padding:34px 0}
+h2{font-size:22px;margin-bottom:6px;letter-spacing:-.01em}
+.intro{color:var(--muted);margin-bottom:16px;font-size:15px}
+.block{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin:14px 0;overflow:hidden}
+.block-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.block-title{font-size:13px;font-weight:600}
+button.copy{font:inherit;font-size:12px;font-weight:600;cursor:pointer;color:#fff;background:var(--accent);border:0;border-radius:7px;padding:6px 12px}
+button.copy:hover{background:var(--accent-b)}
+button.copy.done{background:var(--ok)}
+pre{white-space:pre-wrap;word-wrap:break-word;font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.65;color:#cbd5e1;padding:14px}
+.note{font-size:13px;color:var(--faint);margin-top:10px}
+.warn{background:#2a1a05;border:1px solid #5c3a0a;color:#fbbf24;border-radius:10px;padding:12px 14px;font-size:14px;margin:14px 0}
+ul.check{list-style:none;margin:10px 0}
+ul.check li{padding:7px 0 7px 28px;position:relative;color:#cbd5e1;font-size:15px;border-bottom:1px solid #111b2e}
+ul.check li::before{content:"";position:absolute;left:3px;top:12px;width:14px;height:14px;border:2px solid var(--faint);border-radius:4px}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;padding:14px}
+.calc label{font-size:12px;color:var(--muted);display:block}
+.calc input{width:100%;margin-top:4px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 10px;font:inherit;font-size:15px}
+.results{padding:14px;border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.res{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px}
+.res .k{font-size:12px;color:var(--muted)}.res .v{font-family:ui-monospace,Menlo,monospace;font-size:20px;margin-top:2px}
+.res.big{border-color:var(--accent)}
+footer{border-top:1px solid var(--border);padding-top:24px;color:var(--faint);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="tag">EDITFLOW · STARTER PACK</div>
+  <h1>Everything to land and handle your first editing clients.</h1>
+  <p class="lead">Templates you can copy, a quote calculator, and checklists. Fill in the <b>[BRACKETS]</b>, send it, done. Nothing here is locked or time-limited, so use it as much as you like.</p>
+  <nav class="toc" id="toc"></nav>
+</header>
+<main id="main"></main>
+<footer>
+  <p>These are starting points, not legal or financial advice. Adjust everything to fit you and your client. If you're under 18, ask a parent or guardian to look over any agreement before you sign.</p>
+  <p style="margin-top:10px"><a href="../">← Back to EditFlow</a></p>
+</footer>
+</div>
+
+<script>
+const SECTIONS = [
+{ id:"clients", title:"1. Finding your first clients", intro:"Short, specific messages beat long, generic ones. Pick someone whose content you actually like.", blocks:[
+ { title:"First message to a creator", text:`Hey [NAME]! I really liked [SPECIFIC VIDEO]. Especially [ONE SPECIFIC THING].
+
+I edit videos for creators. I noticed [ONE HONEST OBSERVATION, e.g. "the first 10 seconds could hit harder"], so I made a 20-second sample edit of one of your clips to show what I mean. Want me to send it? No pressure either way.
+
+— [YOUR NAME] | [LINK TO YOUR BEST WORK]` },
+ { title:"Portfolio checklist", checklist:["3 to 5 of your best pieces — quality beats quantity","One horizontal (16:9) and one vertical (9:16) example","A one-line note on each: what you did and what the goal was","One link that opens instantly, no login","A clear way to contact you (email or one DM handle)"] },
+ { title:"Asking for a testimonial (after a good project)", text:`Hey [NAME], thanks again for [PROJECT]! If you're happy with how it turned out, would you write 1–2 sentences about working together? Even something like "fast, easy to work with, and got the edit right" helps me a lot. And if there's anything I could do better, I'd love to hear that too.` }
+]},
+{ id:"intake", title:"2. Client intake questions", intro:"Send these before you quote. It prevents most 'that's not what I meant' revisions.", blocks:[
+ { title:"Intake message", text:`Hi [CLIENT NAME]! Before I start editing, a few quick questions so I get it right the first time:
+
+1. Where will this video be posted (YouTube, TikTok, Instagram, somewhere else)?
+2. Who is it for? Who should it speak to?
+3. What's the ONE thing a viewer should remember or do after watching?
+4. Any videos whose style you love? Send 1–3 links.
+5. Do you have brand colors, fonts, a logo, or music to use? Please send the files.
+6. How long should the final video be?
+7. Is there anything you do NOT want in it?
+8. When do you need the first cut, and when is the final deadline?
+9. Who gives feedback? If more than one person, please combine it into one list.
+10. Do you have a budget in mind?
+
+Thanks! Once I have this I'll send a quote and timeline.` }
+]},
+{ id:"quote", title:"3. Quote calculator", intro:"Work out a price you can defend. Everything runs in your browser, nothing is saved or sent.", calc:true },
+{ id:"scope", title:"4. Scope and revisions", intro:"Put the number of revision rounds in writing before you start. This single paragraph saves the most headaches.", blocks:[
+ { title:"Scope & revisions (paste into your quote)", text:`SCOPE & REVISIONS
+
+Included: [DESCRIBE THE VIDEO, e.g. one 8–10 minute YouTube edit with captions]
+Revision rounds included: [2]
+
+A "round" is ONE combined list of changes sent at the same time. Please send feedback with timecodes (for example "0:42 – cut the pause") so I can find everything quickly.
+
+Extra rounds: [$AMOUNT] each. Big changes after approval (new footage, a different concept, a longer cut) are quoted separately.
+
+Timeline: first cut within [X] days of receiving all footage and files. Each revision round within [X] days of receiving your feedback.
+
+Final files are delivered after the final payment is received.` },
+ { title:"How to ask for good feedback", text:`To keep revisions quick, here's the best way to send notes:
+
+1. Watch the whole video once before writing anything.
+2. Write each note with a timecode (e.g. "1:12 – music is too loud").
+3. If more than one person is giving feedback, combine everything into ONE message and resolve any disagreements first.
+4. Mark each note as "must fix" or "nice to have".
+
+Send it all at once and I'll turn it around in [X] days.` }
+]},
+{ id:"agreement", title:"5. Simple project agreement", intro:"A plain-language template for smaller jobs. Both sides keep a copy.", warn:"Not legal advice. For large or long projects, have it reviewed. If you're under 18, a contract you sign alone may not be binding, so ask a parent or guardian to read it and co-sign.", blocks:[
+ { title:"Editing agreement (template)", text:`VIDEO EDITING AGREEMENT
+
+Editor: [YOUR NAME]    Client: [CLIENT NAME]    Date: [DATE]
+
+1. The work. The editor will deliver: [DESCRIPTION, LENGTH, FORMAT, PLATFORM].
+2. Price and payment. Total: [$TOTAL]. A deposit of [$DEPOSIT] is due before work starts. The balance of [$BALANCE] is due before final files are delivered. Payment method: [METHOD].
+3. Revisions. [2] rounds of revisions are included. Extra rounds cost [$AMOUNT] each.
+4. What the client provides. Footage, music, logos, and other files by [DATE]. If files or feedback arrive late, deadlines move by the same number of days.
+5. Deadlines. First cut: [DATE]. Final delivery: [DATE].
+6. Ownership. After full payment, the client owns the final video. The editor may show it in a portfolio unless the client asks in writing that it stays private.
+7. Cancellation. If the client cancels, the deposit covers work already done and is not refunded. If the editor cancels, the deposit is returned.
+8. Contact. [EMAIL / DM] — questions get an answer within [X] business days.
+
+Editor signature: ______________  Client signature: ______________` }
+]},
+{ id:"money", title:"6. Getting paid", intro:"Polite, clear, and on a schedule. Most late payments are just forgetfulness.", blocks:[
+ { title:"Deposit request", text:`Hi [NAME], thanks for choosing me for [PROJECT]! To lock in your spot, please send the [50]% deposit ([$AMOUNT]) via [PAYMENT METHOD]. I'll start as soon as it arrives and I have your footage. The balance of [$AMOUNT] is due before I send the final files. Thanks!` },
+ { title:"Invoice email", text:`Hi [NAME], the final cut of [PROJECT] is ready! Attached is the invoice for the balance of [$AMOUNT], due [DATE]. As soon as it's paid I'll send the full-quality files. Let me know if you have any questions.` },
+ { title:"Friendly reminder (3 days late)", text:`Hi [NAME], a quick reminder that the invoice for [PROJECT] ([$AMOUNT]) was due on [DATE]. If it's already on the way, thank you! If you need anything from me to process it, just say so.` },
+ { title:"Firm follow-up (10 days late)", text:`Hi [NAME], I'm following up on the invoice for [PROJECT] ([$AMOUNT]), now [X] days past due. Could you let me know today when I can expect payment? Until it's settled I'll hold the final files and pause any other work for you. Thank you for sorting this out.` }
+]},
+{ id:"delivery", title:"7. Before you hit send", intro:"Run through this on every project. It takes two minutes and catches the embarrassing stuff.", blocks:[
+ { title:"Delivery checklist", checklist:["Watch the whole video start to finish, with headphones","Audio: volume steady, nothing clipping, music never covers speech","Look for black frames or flash frames at every cut","Spell-check every on-screen word and caption, especially names","Right shape for the platform: 16:9 for standard YouTube, 9:16 for TikTok, Reels and Shorts","Keep text and faces away from the edges so app buttons don't cover them","Name the file clearly: ProjectName_v1.mp4, ProjectName_final.mp4","Watch the exported file (not just your timeline) once before sending","Send a link instead of a huge attachment, and confirm the client can open it"] }
+]},
+{ id:"editflow", title:"8. Using this with EditFlow", intro:"A simple routine that keeps every project organized.", blocks:[
+ { title:"The routine", checklist:["Add the client, then create a project from the template that fits (YouTube, wedding, corporate)","Put the revision rounds from your scope paragraph into the project","Upload each cut as a version and log client notes at their timecodes","Create the invoice from the project and log payments as they arrive","Export a backup from Settings once in a while, because your data lives in your browser"] }
+]}
+];
+
+const main = document.getElementById('main'), toc = document.getElementById('toc');
+function esc(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function copyText(t, btn){
+  const done=()=>{const o=btn.textContent;btn.textContent='Copied!';btn.classList.add('done');setTimeout(()=>{btn.textContent=o;btn.classList.remove('done');},1400);};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done).catch(()=>fallback());}else fallback();
+  function fallback(){const a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();try{document.execCommand('copy');done();}catch(e){btn.textContent='Select + copy';}a.remove();}
+}
+SECTIONS.forEach(sec=>{
+  const l=document.createElement('a');l.href='#'+sec.id;l.textContent=sec.title.replace(/^\d+\.\s*/,'');toc.appendChild(l);
+  const s=document.createElement('section');s.id=sec.id;
+  s.innerHTML=`<h2>${esc(sec.title)}</h2><p class="intro">${esc(sec.intro)}</p>`+(sec.warn?`<div class="warn">${esc(sec.warn)}</div>`:'');
+  (sec.blocks||[]).forEach(b=>{
+    const d=document.createElement('div');d.className='block';
+    if(b.checklist){
+      d.innerHTML=`<div class="block-head"><span class="block-title">${esc(b.title)}</span></div><div style="padding:6px 14px"><ul class="check">${b.checklist.map(i=>`<li>${esc(i)}</li>`).join('')}</ul></div>`;
+    }else{
+      d.innerHTML=`<div class="block-head"><span class="block-title">${esc(b.title)}</span><button class="copy" type="button">Copy</button></div><pre>${esc(b.text)}</pre>`;
+      d.querySelector('button').addEventListener('click',e=>copyText(b.text,e.currentTarget));
+    }
+    s.appendChild(d);
+  });
+  if(sec.calc){
+    const d=document.createElement('div');d.className='block';
+    d.innerHTML=`<div class="calc">
+      <label>Hours to edit<input id="c-hours" type="number" min="0" step="0.5" value="6"></label>
+      <label>Your hourly rate ($)<input id="c-rate" type="number" min="0" step="1" value="15"></label>
+      <label>Buffer for revisions (%)<input id="c-buf" type="number" min="0" step="5" value="20"></label>
+      <label>Deposit (%)<input id="c-dep" type="number" min="0" max="100" step="5" value="50"></label>
+      <label>Hours per extra revision round<input id="c-xh" type="number" min="0" step="0.5" value="1"></label></div>
+      <div class="results">
+        <div class="res"><div class="k">Editing time</div><div class="v" id="r-base">$0</div></div>
+        <div class="res"><div class="k">Revision buffer</div><div class="v" id="r-buf">$0</div></div>
+        <div class="res big"><div class="k">Quote to send</div><div class="v" id="r-total">$0</div></div>
+        <div class="res"><div class="k">Deposit up front</div><div class="v" id="r-dep">$0</div></div>
+        <div class="res"><div class="k">Price per extra round</div><div class="v" id="r-xr">$0</div></div>
+      </div>`;
+    s.appendChild(d);
+    s.insertAdjacentHTML('beforeend','<p class="note">Tip: if you&rsquo;re new, time yourself on your next edit. Most people guess too low.</p>');
+  }
+  main.appendChild(s);
+});
+function money(n){return '$'+(Math.round(n*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function calc(){
+  const g=id=>Math.max(0,parseFloat(document.getElementById(id).value)||0);
+  const base=g('c-hours')*g('c-rate'), buf=base*g('c-buf')/100, total=base+buf;
+  document.getElementById('r-base').textContent=money(base);
+  document.getElementById('r-buf').textContent=money(buf);
+  document.getElementById('r-total').textContent=money(total);
+  document.getElementById('r-dep').textContent=money(total*Math.min(100,g('c-dep'))/100);
+  document.getElementById('r-xr').textContent=money(g('c-xh')*g('c-rate'));
+}
+['c-hours','c-rate','c-buf','c-dep','c-xh'].forEach(id=>document.getElementById(id).addEventListener('input',calc));
+calc();
+</script>
+</body>
+</html>
