@@ -431,5 +431,22 @@ function _cmd(inputId,msgId){
 function sendCmd(){_cmd('cmd-input','cmd-messages');}
 function homeCmd(){_cmd('home-input','home-msgs');}
 </script>
+<script>
+// Shown after Stripe Checkout returns here with ?checkout=success
+(function(){
+  var q=new URLSearchParams(location.search);
+  if(q.get('checkout')!=='success')return;
+  var b=document.createElement('div');
+  b.setAttribute('role','status');
+  b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;padding:14px 20px;text-align:center;background:#f5a623;color:#111;font-weight:600;font-size:14px';
+  b.textContent='Thank you \u2014 your subscription is confirmed.';
+  var x=document.createElement('button');
+  x.textContent='\u00d7';x.setAttribute('aria-label','Dismiss');
+  x.style.cssText='margin-left:16px;background:none;border:0;font-size:18px;cursor:pointer;color:#111';
+  x.onclick=function(){b.remove();};
+  b.appendChild(x);document.body.appendChild(b);
+  history.replaceState(null,'',location.pathname+location.hash);
+})();
+</script>
 </body>
 </html>
