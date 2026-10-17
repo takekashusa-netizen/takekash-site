@@ -12,6 +12,7 @@
 //   REPLY_TO                (optional) where buyer replies go; defaults to OWNER_EMAIL
 //   APP_ACCESS_URL          (optional) link to the app; also derives the Starter Pack link (<url>/starter-pack/). If unset, the buyer is told access follows personally
 //   PACK_URL                (optional) override the Starter Pack link
+//   PORTAL_URL              (optional) Stripe customer-portal link; if unset the email says to reply to cancel
 //   EDITFLOW_PAYMENT_LINK_ID (optional) plink_... to pin this to one specific payment link
 
 const crypto = require("crypto");
@@ -131,6 +132,11 @@ exports.handler = async (event) => {
          <p>Your <b>Starter Pack</b> is included: templates for finding clients, quotes, revisions, invoices and late payments, plus a quote calculator.<br>
          <a href="${esc(packUrl)}">Open the Starter Pack →</a></p>`
       : `<p>I'll send your access details personally within 24 hours.</p>`;
+    // Always-true cancellation line: portal link if configured, otherwise "reply to cancel" (replies reach the owner).
+    const portal = process.env.PORTAL_URL;
+    const manage = portal
+      ? `<p>Update your card or cancel anytime: <a href="${esc(portal)}">manage your subscription</a>.</p>`
+      : `<p>To cancel or change your plan, just reply to this email.</p>`;
     try {
       await sendEmail({
         to: email,
@@ -139,6 +145,7 @@ exports.handler = async (event) => {
         html: `<p>Hey ${esc(name)},</p>
                <p>Thanks for subscribing to EditFlow Pro${amount ? ` (${esc(amount)}/mo)` : ""}. Your payment went through.</p>
                ${access}
+               ${manage}
                <p>Reply to this email if anything looks off — I read every one.</p>`,
       });
     } catch (err) {

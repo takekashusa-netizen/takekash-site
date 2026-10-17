@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Free Video Editing Quote Calculator for Freelancers | EditFlow</title>
+<meta name="description" content="Work out what to charge for a video edit. Enter your hours, rate, and revision buffer to get a quote, a deposit amount, and a price for extra revision rounds. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<style>
+:root{--bg:#020617;--surface:#0f172a;--surface2:#141d31;--border:#1e293b;--text:#f1f5f9;--muted:#94a3b8;--faint:#64748b;--accent:#e11d48;--accent-b:#fb7185;--ok:#10b981}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:Inter,'Helvetica Neue',Arial,sans-serif;line-height:1.65;-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding:44px 20px 80px}
+a{color:var(--accent-b)}
+.tag{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--accent-b);letter-spacing:.04em}
+h1{font-size:clamp(28px,5vw,40px);line-height:1.15;margin:8px 0 12px;letter-spacing:-.02em}
+h2{font-size:21px;margin:38px 0 10px;letter-spacing:-.01em}
+.lead{color:var(--muted);font-size:17px}
+p{color:#cbd5e1;margin-bottom:12px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin:26px 0;overflow:hidden}
+.inputs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;padding:18px}
+label{font-size:13px;color:var(--muted);display:block}
+label small{display:block;color:var(--faint);font-size:11.5px;margin-top:2px}
+input{width:100%;margin-top:5px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:10px 11px;font:inherit;font-size:16px}
+input:focus{outline:2px solid var(--accent-b);outline-offset:1px}
+.results{padding:18px;border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;background:var(--surface2)}
+.res{background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:13px}
+.res .k{font-size:12px;color:var(--muted)}.res .v{font-family:ui-monospace,Menlo,monospace;font-size:22px;margin-top:3px}
+.res.big{border-color:var(--accent)}
+.actions{padding:14px 18px;border-top:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{font:inherit;font-weight:600;font-size:14px;cursor:pointer;color:#fff;background:var(--accent);border:0;border-radius:9px;padding:10px 16px}
+button:hover{background:var(--accent-b)}button.done{background:var(--ok)}
+.hint{font-size:13px;color:var(--faint)}
+ul{margin:8px 0 14px 20px;color:#cbd5e1}li{margin-bottom:6px}
+.cta{background:linear-gradient(135deg,var(--surface2),var(--surface));border:1px solid var(--border);border-radius:14px;padding:26px;margin-top:40px}
+.cta h2{margin-top:0}
+.cta a.btn{display:inline-block;margin-top:6px;background:var(--accent);color:#fff;text-decoration:none;font-weight:600;padding:11px 18px;border-radius:9px}
+.cta a.btn:hover{background:var(--accent-b)}
+footer{margin-top:44px;padding-top:20px;border-top:1px solid var(--border);color:var(--faint);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="tag">FREE TOOL · NO SIGNUP</div>
+  <h1>Video editing quote calculator</h1>
+  <p class="lead">Turn your hours and hourly rate into a quote you can defend, with a deposit amount and a price for extra revision rounds. Everything runs in your browser, nothing is saved or sent.</p>
+
+  <div class="card">
+    <div class="inputs">
+      <label>Hours to edit<small>Your honest estimate, including captions and exports</small><input id="c-hours" type="number" inputmode="decimal" min="0" step="0.5" value="6"></label>
+      <label>Your hourly rate ($)<input id="c-rate" type="number" inputmode="decimal" min="0" step="1" value="15"></label>
+      <label>Buffer for revisions (%)<small>Extra time for normal back-and-forth</small><input id="c-buf" type="number" inputmode="decimal" min="0" step="5" value="20"></label>
+      <label>Deposit (%)<small>Paid before you start</small><input id="c-dep" type="number" inputmode="decimal" min="0" max="100" step="5" value="50"></label>
+      <label>Hours per extra revision round<small>For rounds beyond your quote</small><input id="c-xh" type="number" inputmode="decimal" min="0" step="0.5" value="1"></label>
+    </div>
+    <div class="results" aria-live="polite">
+      <div class="res"><div class="k">Editing time</div><div class="v" id="r-base">$0.00</div></div>
+      <div class="res"><div class="k">Revision buffer</div><div class="v" id="r-buf">$0.00</div></div>
+      <div class="res big"><div class="k">Quote to send</div><div class="v" id="r-total">$0.00</div></div>
+      <div class="res"><div class="k">Deposit up front</div><div class="v" id="r-dep">$0.00</div></div>
+      <div class="res"><div class="k">Balance on delivery</div><div class="v" id="r-bal">$0.00</div></div>
+      <div class="res"><div class="k">Price per extra round</div><div class="v" id="r-xr">$0.00</div></div>
+    </div>
+    <div class="actions"><button id="copy" type="button">Copy quote summary</button><span class="hint">Pastes into an email or DM.</span></div>
+  </div>
+
+  <h2>How the quote is worked out</h2>
+  <ul>
+    <li><b>Editing time</b> is hours × your hourly rate.</li>
+    <li><b>Revision buffer</b> adds a percentage on top, because some back-and-forth is normal and should be paid for.</li>
+    <li><b>Deposit</b> is a share of the total, due before you start. It filters out clients who aren't serious.</li>
+    <li><b>Extra rounds</b> are priced at the hours each round takes times your rate, so a fifth round isn't free.</li>
+  </ul>
+
+  <h2>Getting the numbers right</h2>
+  <p><b>Time yourself.</b> Most new editors guess too low. Track your next project from import to export and use that number.</p>
+  <p><b>Put the number of revision rounds in writing.</b> A quote that says "2 rounds included, extra rounds $X each" prevents most arguments later. Define a round as one combined list of changes sent together.</p>
+  <p><b>Don't hide the buffer.</b> If a project goes smoothly you've earned a fair margin. If it doesn't, the buffer is what keeps you from working for free.</p>
+
+  <div class="cta">
+    <h2>Quoted it? Now keep track of it.</h2>
+    <p>EditFlow tracks every revision round against what you quoted, warns you before you do unpaid extra rounds, and keeps deadlines, invoices and payments in one place. It works alongside Frame.io, Google Drive, Dropbox and Vimeo: you paste in the link to each cut.</p>
+    <a class="btn" href="https://takekash.com/editflow-pro">See EditFlow</a>
+  </div>
+
+  <footer>This calculator gives you a starting point, not financial or legal advice. Adjust to your market and your client.</footer>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const g=id=>Math.max(0,parseFloat($(id).value)||0);
+const money=n=>'$'+(Math.round(n*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+let last={};
+function calc(){
+  const hours=g('c-hours'),rate=g('c-rate'),bufPct=g('c-buf'),depPct=Math.min(100,g('c-dep')),xh=g('c-xh');
+  const base=hours*rate,buf=base*bufPct/100,total=base+buf,dep=total*depPct/100,bal=total-dep,xr=xh*rate;
+  last={hours,rate,bufPct,depPct,base,buf,total,dep,bal,xr};
+  $('r-base').textContent=money(base);$('r-buf').textContent=money(buf);$('r-total').textContent=money(total);
+  $('r-dep').textContent=money(dep);$('r-bal').textContent=money(bal);$('r-xr').textContent=money(xr);
+}
+['c-hours','c-rate','c-buf','c-dep','c-xh'].forEach(id=>$(id).addEventListener('input',calc));
+calc();
+$('copy').addEventListener('click',e=>{
+  const x=last, t=`QUOTE\nEditing: ${x.hours} hours at ${money(x.rate)}/hour = ${money(x.base)}\nRevision buffer (${x.bufPct}%): ${money(x.buf)}\nTotal: ${money(x.total)}\nDeposit (${x.depPct}%) due before starting: ${money(x.dep)}\nBalance due on delivery: ${money(x.bal)}\nExtra revision rounds beyond those included: ${money(x.xr)} each`;
+  const b=e.currentTarget, done=()=>{const o=b.textContent;b.textContent='Copied!';b.classList.add('done');setTimeout(()=>{b.textContent=o;b.classList.remove('done');},1400);};
+  const fb=()=>{const a=document.createElement('textarea');a.value=t;a.style.cssText='position:fixed;opacity:0';document.body.appendChild(a);a.select();try{document.execCommand('copy');done();}catch(_){}a.remove();};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done).catch(fb);else fb();
+});
+</script>
+</body>
+</html>
