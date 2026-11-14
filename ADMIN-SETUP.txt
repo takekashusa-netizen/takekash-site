@@ -40,7 +40,7 @@ One-time setup (do this before it'll work live)
 1. In the Netlify dashboard for this site: Site configuration >
    Environment variables > Add a variable.
      Key:   ADMIN_KEY
-     Value: a00f3654422035a84817ae304cb04418e4c3e60aabb7abe2
+     Value: <generate your own: openssl rand -hex 24>
    Scope: Functions (or "All scopes" is fine too).
 
    This is the key that gates /api/admin-data — keep it private,

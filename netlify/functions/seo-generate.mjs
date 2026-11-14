@@ -27,10 +27,9 @@ export default async (req, context) => {
   const auth = req.headers.get("authorization") || "";
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
   let tier = "trial", email = null;
-  if (env.ADMIN_KEY && token === env.ADMIN_KEY) tier = "paid";           // owner: always full access
-  else if (token) {
+  if (token) {
     email = access.verifyToken(token, env);
-    if (email && (await access.isPaid(store, email))) tier = "paid";       // re-checked every run: cancels take effect
+    if (email && (access.isOwner(email, env) || (await access.isPaid(store, email)))) tier = "paid"; // owner via signed email link, never a shared key       // re-checked every run: cancels take effect
     else if (email) return json(req, 402, { error: "Your plan isn't active. Renew to keep full access.", code: "inactive" });
     else return json(req, 401, { error: "Sign-in expired. Get a new link.", code: "expired" });
   }

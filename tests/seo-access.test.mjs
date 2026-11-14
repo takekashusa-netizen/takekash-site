@@ -81,7 +81,11 @@ ok(r.status === 200 && r.body.access === "paid", "resubscribe/reactivation resto
 
 // --- Owner key
 r = await call(gen, { ...topic, platform: "all" }, { authorization: "Bearer owner-key" }, "9.9.9.9");
-ok(r.status === 200 && r.body.access === "paid", "owner admin key = full access, free");
+ok(r.status === 401, "the shared admin key does NOT unlock SEO Studio");
+const n0 = sent.length; await call(auth, { email: "Owner@X.com" });
+const ownerTok = decodeURIComponent(sent.slice(n0).find((m) => m.to === "owner@x.com").html.match(/\?t=([^"]+)"/)[1]);
+r = await call(gen, { ...topic, platform: "all" }, { authorization: `Bearer ${ownerTok}` }, "9.9.9.9");
+ok(r.status === 200 && r.body.access === "paid", "owner gets full access free via emailed link (no subscription)");
 
 // --- Bad webhook signature still rejected
 const bad = stripeEvent({ type: "checkout.session.completed", data: { object: {} } }); bad.headers["stripe-signature"] = "t=1,v1=00";

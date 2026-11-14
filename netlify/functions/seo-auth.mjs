@@ -28,7 +28,7 @@ export default async (req) => {
   if (rl.n >= 3) return json(req, 200, SAME);
   rl.n += 1; await store.setJSON(rlKey, rl);
 
-  if (!(await access.isPaid(store, email))) return json(req, 200, SAME);
+  if (!access.isOwner(email, env) && !(await access.isPaid(store, email))) return json(req, 200, SAME);
 
   const origin = ORIGINS.has(req.headers.get("origin")) ? req.headers.get("origin") : (env.SITE_URL || "https://takekash.netlify.app");
   const link = `${origin}/seo?t=${encodeURIComponent(access.signToken(email, env))}`;
