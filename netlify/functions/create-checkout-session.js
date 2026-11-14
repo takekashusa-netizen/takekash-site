@@ -29,10 +29,10 @@ const json = (statusCode, body) => ({
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
 
-  let priceId;
+  let priceId, returnPath;
   try {
     const raw = event.isBase64Encoded ? Buffer.from(event.body || "", "base64").toString("utf8") : event.body || "";
-    priceId = JSON.parse(raw).priceId;
+    ({ priceId, returnPath } = JSON.parse(raw));
   } catch {
     return json(400, { error: "Invalid request" });
   }
@@ -53,7 +53,8 @@ exports.handler = async (event) => {
     mode: "subscription",
     "line_items[0][price]": priceId,
     "line_items[0][quantity]": "1",
-    success_url: `${base}/?checkout=success`,
+    // Only known pages may be returned to (SEO Studio buyers land back on /seo to get their sign-in link).
+    success_url: returnPath === "/seo" ? `${base}/seo?checkout=success` : `${base}/?checkout=success`,
     cancel_url: `${base}/#pricing`,
     allow_promotion_codes: "true",
     "metadata[product]": "takekash", // lets the webhook tell clip-tool sales from EditFlow sales

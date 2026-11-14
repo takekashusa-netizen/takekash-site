@@ -1,0 +1,8 @@
+{
+  "name": "takekash-site",
+  "private": true,
+  "description": "takekash.com static site + Netlify functions",
+  "dependencies": {
+    "@netlify/blobs": "^11.1.9"
+  }
+}

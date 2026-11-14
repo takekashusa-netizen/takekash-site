@@ -16,6 +16,8 @@
 //   EDITFLOW_PAYMENT_LINK_ID (optional) plink_... to pin this to one specific payment link
 
 const crypto = require("crypto");
+const { connectLambda, getStore } = require("@netlify/blobs");
+const seoAccess = require("../../lib/seo/access.cjs");
 
 const TOLERANCE_SECONDS = 300;
 
@@ -76,6 +78,19 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: "Bad JSON" };
   }
 
+  // SEO Studio entitlements live in Netlify Blobs ("seo-access").
+  connectLambda(event);
+  const seoStore = getStore("seo-access"); // connectLambda gives no uncached URL, so default consistency here (writes are unaffected)
+
+  // Subscription ended or changed: turn SEO Studio access off/on to match. 500 on failure so Stripe retries.
+  if (evt.type === "customer.subscription.deleted" || evt.type === "customer.subscription.updated") {
+    const sub = evt.data.object;
+    const active = evt.type === "customer.subscription.updated" && ["active", "trialing", "past_due"].includes(sub.status);
+    try { await seoAccess.setSubStatus(seoStore, sub.id, active); }
+    catch (err) { console.error("SEO access update failed:", err); return { statusCode: 500, body: "access update failed" }; }
+    return { statusCode: 200, body: "ok" };
+  }
+
   if (evt.type !== "checkout.session.completed") return { statusCode: 200, body: "ignored" };
 
   const s = evt.data.object;
@@ -84,6 +99,9 @@ exports.handler = async (event) => {
   // No buyer email is defined for it yet, so just alert the owner. Fail with 500 so Stripe retries.
   if (s.metadata && s.metadata.product === "takekash") {
     const who = (s.customer_details && s.customer_details.email) || "(no email)";
+    // Unlock SEO Studio for this buyer. Fail with 500 so Stripe retries rather than leave a paid customer locked out.
+    try { if (s.customer_details && s.customer_details.email) await seoAccess.grant(seoStore, s.customer_details.email, s.subscription); }
+    catch (err) { console.error("SEO access grant failed:", err); return { statusCode: 500, body: "access grant failed" }; }
     const amt = typeof s.amount_total === "number" ? `$${(s.amount_total / 100).toFixed(2)}` : "";
     try {
       await sendEmail({
