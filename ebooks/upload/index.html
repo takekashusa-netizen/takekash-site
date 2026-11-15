@@ -1,0 +1,90 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Upload ebooks (owner) | TakeKash</title><meta name="description" content="owner"><meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0d0c;--panel:#131715;--panel2:#1a1f1c;--line:#26302b;--ink:#eef3ef;--mute:#93a39a;--kash:#2fe07c;--kash2:#1fb862;--warn:#f5b83d;--bad:#ff6b6b;--r:14px}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif;-webkit-text-size-adjust:100%}
+a{color:var(--kash)}
+.wrap{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+header.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.logo{font:700 20px 'Space Grotesk',sans-serif;letter-spacing:-.02em;color:var(--ink);text-decoration:none}.logo b{color:var(--kash)}
+.pill{font-size:12px;color:var(--mute);border:1px solid var(--line);padding:4px 10px;border-radius:99px}
+h1{font:700 clamp(28px,6vw,44px)/1.08 'Space Grotesk',sans-serif;letter-spacing:-.03em;margin:8px 0 10px}
+h1 em{font-style:normal;color:var(--kash)}
+.lede{color:var(--mute);max-width:640px;margin:0 0 22px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+label{display:block;font-size:12px;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;margin:0 0 6px}
+input,select,textarea{width:100%;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px;font:inherit;font-size:16px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--kash);outline-offset:-1px;border-color:transparent}
+.grid{display:grid;gap:14px}.g2{grid-template-columns:1fr 1fr}
+@media(max-width:640px){.g2{grid-template-columns:1fr}}
+.plats{display:flex;flex-wrap:wrap;gap:8px}
+.plats button{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:99px;padding:8px 14px;font:500 14px Inter,sans-serif;cursor:pointer}
+.plats button[aria-pressed=true]{background:var(--kash);color:#04210f;border-color:var(--kash)}
+.go{display:flex;gap:10px;margin-top:4px}
+.btn{background:var(--kash);color:#04210f;border:0;border-radius:10px;padding:13px 18px;font:700 15px 'Space Grotesk',sans-serif;cursor:pointer;flex:1}
+.btn:active{transform:translateY(1px)}.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);flex:0 0 auto}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 10px;color:var(--mute);font-size:13px}
+.meta-row span{background:var(--panel);border:1px solid var(--line);padding:4px 10px;border-radius:99px}.meta-row b{color:var(--ink);font-weight:600}
+.results{display:grid;gap:14px}
+.pcard h2{font:700 18px 'Space Grotesk',sans-serif;margin:0 0 12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sec{margin-top:14px}.sec:first-of-type{margin-top:0}
+.sec h3{font-size:12px;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;margin:0 0 8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.title-row{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:10px 12px;margin-bottom:6px;font:inherit;cursor:pointer}
+.title-row:hover{border-color:var(--kash2)}.title-row .t{flex:1}
+.len{font:600 11px Inter,sans-serif;padding:2px 7px;border-radius:99px;background:#183b26;color:var(--kash);white-space:nowrap}
+.len.long{background:#3b2f12;color:var(--warn)}
+textarea{min-height:120px;resize:vertical;font-size:14px;line-height:1.45}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:5px 9px;font-size:13px;cursor:pointer;user-select:none}
+.chip.off{opacity:.38;text-decoration:line-through}
+.copy{background:transparent;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:5px 10px;font:600 12px Inter,sans-serif;cursor:pointer;text-transform:none;letter-spacing:0;white-space:nowrap}
+.copy.ok{border-color:var(--kash);color:var(--kash)}
+.meter{height:6px;background:var(--panel2);border-radius:99px;overflow:hidden;margin-top:8px}.meter i{display:block;height:100%;background:var(--kash)}
+.note{font-size:12px;color:var(--mute);margin-top:6px}
+.tiers .tier{margin-top:12px}.tier h3 small{font-weight:500;text-transform:none;letter-spacing:0;color:var(--mute)}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:6px 10px;font-size:14px}.kv dt{color:var(--mute)}.kv dd{margin:0;word-break:break-word}
+.faq{margin-top:34px}.faq h2{font:700 22px 'Space Grotesk',sans-serif}.faq details{border-top:1px solid var(--line);padding:12px 0}.faq summary{cursor:pointer;font-weight:600}.faq p{color:var(--mute);margin:8px 0 0}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(80px);background:var(--kash);color:#04210f;font-weight:700;padding:10px 16px;border-radius:99px;transition:.25s;z-index:9}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.access{display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:14px}
+.access .who{font-size:14px}.access .who b{color:var(--kash)}
+.access .acts{display:flex;gap:8px;flex-wrap:wrap}
+.mini{background:var(--kash);color:#04210f;border:0;border-radius:9px;padding:9px 13px;font:700 13px 'Space Grotesk',sans-serif;cursor:pointer}
+.mini.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.signin{display:none;gap:8px;width:100%}.signin.show{display:flex}.signin input{flex:1;padding:10px}
+.msg{width:100%;font-size:13px;color:var(--mute)}.msg.err{color:var(--bad)}
+.upsell{border-color:var(--kash2);background:linear-gradient(180deg,#132219,var(--panel))}
+.upsell h2{font:700 20px 'Space Grotesk',sans-serif;margin:0 0 8px}.upsell ul{margin:0 0 14px;padding-left:18px;color:var(--mute)}
+.plats button.lock::after{content:' 🔒'}
+.empty{color:var(--mute);text-align:center;padding:26px 10px}
+footer{color:var(--mute);font-size:12px;margin-top:30px;border-top:1px solid var(--line);padding-top:14px}
+</style><style>
+.books{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.book{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
+.cover{aspect-ratio:3/4;display:flex;flex-direction:column;justify-content:space-between;padding:18px;background:linear-gradient(160deg,#0f1a2e,#0b0d0c 70%);position:relative;border-bottom:1px solid var(--line)}
+.cover .badge{width:84px;height:84px;border-radius:50%;display:grid;place-items:center;font-size:40px;background:radial-gradient(circle at 35% 30%,#ffffff22,transparent 60%),var(--c);box-shadow:inset 0 -6px 12px #0006,0 8px 24px #0008,0 0 0 4px #c9a24a55;margin:8px auto}
+.cover .no{font:700 12px 'Space Grotesk',sans-serif;letter-spacing:.12em;color:#c9a24a}.cover h3{font:700 20px/1.15 'Space Grotesk',sans-serif;margin:0}.cover small{color:var(--mute)}
+.book .body{padding:14px;display:flex;flex-direction:column;gap:10px;flex:1}.book ul{margin:0;padding-left:18px;color:var(--mute);font-size:13px}
+.price{font:700 22px 'Space Grotesk',sans-serif}.buy{margin-top:auto}
+.hero-bundle{display:grid;grid-template-columns:1.2fr 1fr;gap:18px;align-items:center;margin-bottom:22px;border-color:var(--kash2)}
+@media(max-width:700px){.hero-bundle{grid-template-columns:1fr}}
+.strike{color:var(--mute);text-decoration:line-through;font-size:15px;margin-left:8px}
+</style></head><body><div class="wrap">
+<header class="top"><a class="logo" href="/">Take<b>Kash</b></a><span style="display:flex;gap:8px"><a class="pill" href="/seo" style="text-decoration:none">SEO Studio</a><a class="pill" href="/#get-clips" style="text-decoration:none;color:var(--kash);border-color:var(--kash2)">Get my clips</a></span></header>
+<section class="card" style="max-width:620px;margin:0 auto"><h1 style="font-size:28px">Upload your ebook PDFs</h1>
+<p class="note">Owner only. Files are stored encrypted on the server and are only ever sent to paying buyers.</p>
+<label for="code" style="margin-top:12px">Upload code</label><input id="code" type="password" autocomplete="off">
+<label for="files" style="margin-top:12px">Pick all 10 PDFs (names like 04-legal-paralegal-prompt-pack.pdf)</label><input id="files" type="file" accept="application/pdf" multiple>
+<div class="go" style="margin-top:12px"><button class="btn" id="go" type="button">Upload</button></div><div id="out" class="note" style="margin-top:12px"></div></section></div>
+<script>
+var MAP={ecommerce:/ecommerce|amazon/i,'real-estate':/real-?estate/i,insurance:/insurance/i,legal:/legal|paralegal/i,events:/wedding|event/i,fitness:/fitness|nutrition/i,recruiting:/recruit|hr/i,finance:/financial|advisor/i,property:/property/i,medical:/medical|dental/i};
+function skuFor(n){for(var k in MAP)if(MAP[k].test(n))return k;return null;}
+function status(){var c=document.getElementById('code').value;if(!c)return;fetch('/api/ebook-status',{headers:{'x-upload-code':c}}).then(function(r){return r.json();}).then(function(d){if(d.packs)document.getElementById('out').innerHTML=d.packs.map(function(p){return (p.uploaded?'✅ ':'⬜ ')+p.title;}).join('<br>');});}
+document.getElementById('code').onchange=status;
+document.getElementById('go').onclick=async function(){var c=document.getElementById('code').value,fs=[].slice.call(document.getElementById('files').files),out=document.getElementById('out'),log=[];
+ for(var i=0;i<fs.length;i++){var f=fs[i],sku=skuFor(f.name);if(!sku){log.push('⚠️ '+f.name+': not recognized');continue;}
+  out.innerHTML=log.concat(['Uploading '+f.name+'...']).join('<br>');
+  try{var r=await fetch('/api/ebook-upload?sku='+sku,{method:'POST',headers:{'x-upload-code':c,'Content-Type':'application/pdf'},body:f});var d=await r.json();log.push((r.ok?'✅ ':'❌ ')+f.name+(r.ok?'':': '+d.error));}catch(e){log.push('❌ '+f.name+': network error');}}
+ out.innerHTML=log.join('<br>');setTimeout(status,500);};
+</script></body></html>

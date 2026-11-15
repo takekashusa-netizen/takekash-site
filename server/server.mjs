@@ -57,7 +57,8 @@ http.createServer(async (req, res) => {
     const fn = routes.get(url.pathname);
     if (fn) {
       const chunks = []; let size = 0;
-      for await (const c of req) { size += c.length; if (size > MAX_BODY) { res.writeHead(413, SECURITY); return res.end(); } chunks.push(c); }
+      const cap = url.pathname === "/api/ebook-upload" ? 31 * 1024 * 1024 : MAX_BODY;
+      for await (const c of req) { size += c.length; if (size > cap) { res.writeHead(413, SECURITY); return res.end(); } chunks.push(c); }
       const headers = new Headers(); for (const [k, v] of Object.entries(req.headers)) headers.set(k, Array.isArray(v) ? v.join(",") : v);
       const ip = String(req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
       const r = await fn(new Request(url, { method: req.method, headers, body: ["GET", "HEAD"].includes(req.method) ? undefined : Buffer.concat(chunks) }), { ip });

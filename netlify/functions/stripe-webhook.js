@@ -96,6 +96,21 @@ exports.handler = async (event) => {
 
   const s = evt.data.object;
 
+  // Ebook sale: email the buyer their signed download links (the thanks page also shows them).
+  if (s.metadata && s.metadata.product === "ebook") {
+    const E = require("../../lib/ebooks.cjs");
+    const email = s.customer_details && s.customer_details.email, p = E.CATALOG[s.metadata.sku];
+    if (!p || s.payment_status !== "paid") return { statusCode: 200, body: "ignored" };
+    const site = process.env.SITE_URL || "https://site-production-000380c0.up.railway.app";
+    const links = p.files.map((f) => `<li><a href="${site}/api/ebook-download?t=${E.signDownload(s.id, f)}">${esc(E.CATALOG[f].title)}</a></li>`).join("");
+    try {
+      if (email) await sendEmail({ to: email, replyTo: process.env.REPLY_TO || process.env.OWNER_EMAIL, subject: `Your download: ${p.title}`,
+        html: `<p>Thanks for your purchase! Your ${p.files.length > 1 ? "ebooks are" : "ebook is"} ready:</p><ul>${links}</ul><p>Links work for 7 days (up to 10 downloads each). Lost them? Open <a href="${site}/ebooks/thanks?session_id=${s.id}">your purchase page</a> any time.</p><p style="color:#666;font-size:12px">${esc(E.LICENSE)}</p>` });
+      await sendEmail({ to: process.env.OWNER_EMAIL, subject: `Ebook sale: ${p.short} (${email || "no email"})`, html: `<p>${esc(p.title)} sold to ${esc(email)} for $${(s.amount_total / 100).toFixed(2)}.</p>` });
+    } catch (err) { console.error("ebook email failed", err); return { statusCode: 500, body: "email failed" }; }
+    return { statusCode: 200, body: "ok" };
+  }
+
   // Clip-tool (TakeKash) sale: created by /api/create-checkout-session, tagged metadata.product=takekash.
   // No buyer email is defined for it yet, so just alert the owner. Fail with 500 so Stripe retries.
   if (s.metadata && s.metadata.product === "takekash") {

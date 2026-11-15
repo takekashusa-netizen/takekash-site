@@ -1,4 +1,4 @@
-process.env.DATA_DIR = "/tmp/racedata";
+const fs0 = await import("fs"), os0 = await import("os"), p0 = await import("path"); process.env.DATA_DIR = fs0.mkdtempSync(p0.join(os0.tmpdir(), "race-"));
 const { getStore } = await import("../server/blobs-shim/index.mjs");
 const { createRequire } = await import("module"); const require = createRequire(import.meta.url);
 const D = require("../lib/seo/delivery.cjs");

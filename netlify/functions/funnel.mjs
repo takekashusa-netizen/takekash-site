@@ -5,7 +5,7 @@ import access from "../../lib/seo/access.cjs";
 const ORIGINS = new Set(["https://takekash.com", "https://www.takekash.com", "https://takekash.netlify.app", ...(process.env.SITE_ORIGINS || "").split(",").map((s) => s.trim()).filter(Boolean)]);
 const cors = (req) => { const o = req.headers.get("origin"); return ORIGINS.has(o) ? { "Access-Control-Allow-Origin": o, "Access-Control-Allow-Headers": "Content-Type, Authorization", Vary: "Origin" } : {}; };
 const json = (req, s, b) => new Response(JSON.stringify(b), { status: s, headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...cors(req) } });
-const PUBLIC = new Set(["unlock_click", "kit_made", "page_seo", "page_kit", "page_home"]);
+const PUBLIC = new Set(["unlock_click", "kit_made", "page_seo", "page_kit", "page_home", "page_ebooks"]);
 
 export default async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(req) });
