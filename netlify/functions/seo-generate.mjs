@@ -75,8 +75,19 @@ export default async (req, context) => {
     return json(req, 200, { access: "trial", remaining: t.remaining, ...limited });
   }
   if (!engine.PLATFORMS[opts.platform] && opts.platform !== "all") opts.platform = "all";
-  const full = engine.generate(opts);
-  return json(req, 200, { access: "paid", ...addSearched(full, await searchedNow(full.analysis.core)) });
+  const full = addSearched(engine.generate(opts), await searchedNow(engine.generate({ ...opts, platform: "youtube" }).analysis.core));
+  // Members: every run is saved (last 30) so it's on any device later.
+  if (email) {
+    try {
+      const ms = getStore("seo-members"), key = `history:${email}`;
+      const hist = (await ms.get(key, { type: "json" })) || [];
+      const run = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), at: new Date().toISOString(),
+                    input: { topic: opts.topic, category: opts.category, brand: opts.brand, extra: opts.extra, platform: opts.platform }, output: full };
+      await ms.setJSON(key, [run].concat(hist).slice(0, 30));
+      full.savedId = run.id;
+    } catch (e) { console.error("history save failed", e); }
+  }
+  return json(req, 200, { access: "paid", ...full });
 };
 
 export const config = { path: "/api/seo-generate" };

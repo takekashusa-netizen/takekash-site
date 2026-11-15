@@ -33,6 +33,8 @@ globalThis.fetch = async (u, o) => {
 const gen = (await import("../netlify/functions/seo-generate.mjs")).default;
 const auth = (await import("../netlify/functions/seo-auth.mjs")).default;
 const webhook = require("../netlify/functions/stripe-webhook.js").handler;
+const member = (await import("../netlify/functions/seo-member.mjs")).default;
+const mcall = async (method, body, tok, qs = "") => { const r = await member(new Request("https://takekash.netlify.app/api/seo-member" + qs, { method, headers: { "content-type": "application/json", origin: "https://takekash.com", ...(tok ? { authorization: `Bearer ${tok}` } : {}) }, body: body ? JSON.stringify(body) : undefined })); return { status: r.status, body: await r.json() }; };
 
 const post = (body, headers = {}) => new Request("https://takekash.netlify.app/api/x", { method: "POST", headers: { "content-type": "application/json", origin: "https://takekash.com", ...headers }, body: JSON.stringify(body) });
 const ctx = (ip) => ({ ip });
@@ -84,6 +86,16 @@ suggestDown = true;
 r = await call(gen, { ...topic, platform: "all" }, { authorization: `Bearer ${token}` });
 ok(r.status === 200 && !r.body.tiers.searched, "search service down: generation still works, tier just omitted");
 suggestDown = false;
+
+// --- Member saves + presets
+let m = await mcall("GET", null, token);
+ok(m.status === 200 && m.body.history.length >= 1 && m.body.history[0].input.topic, "member runs are saved automatically");
+const firstId = m.body.history[0].id;
+m = await mcall("PUT", { preset: { brand: "GtaxZombies", category: "gaming", extra: "ps5", platform: "tiktok" } }, token);
+ok(m.status === 200 && (await mcall("GET", null, token)).body.preset.brand === "GtaxZombies", "channel preset saved and returned");
+m = await mcall("DELETE", null, token, `?id=${firstId}`);
+ok(!m.body.history.some((h) => h.id === firstId), "a saved run can be removed");
+ok((await mcall("GET", null, null)).status === 401, "saves/presets are members-only");
 
 // --- Tampered token
 r = await call(gen, topic, { authorization: `Bearer ${token.slice(0, -2)}xx` });

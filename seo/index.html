@@ -102,6 +102,15 @@ footer{color:var(--mute);font-size:12px;margin-top:30px;border-top:1px solid var
     <div class="msg" id="msg" hidden></div>
   </div>
 
+  <div class="card" id="member" hidden style="margin-bottom:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+      <b style="font:700 15px 'Space Grotesk',sans-serif">My channel</b>
+      <span style="display:flex;gap:6px"><button class="mini ghost" type="button" id="savePreset">Save current settings as default</button><button class="mini ghost" type="button" id="toggleHist">Saved runs</button></span>
+    </div>
+    <div class="msg" id="pmsg" hidden></div>
+    <div id="hist" hidden style="margin-top:10px"></div>
+  </div>
+
   <form id="f" class="card grid" autocomplete="off">
     <div>
       <label for="topic">Topic</label>
@@ -182,11 +191,37 @@ footer{color:var(--mute);font-size:12px;margin-top:30px;border-top:1px solid var
     $('again').textContent = paid() ? '↻ Remix' : '↻ Remix 🔒';
   }
   function say(t, err){ var m=$('msg'); m.hidden=!t; m.textContent=t||''; m.className='msg'+(err?' err':''); }
+  function api(path, opts){ opts = opts || {}; opts.headers = Object.assign({'Content-Type':'application/json','Authorization':'Bearer '+state.token}, opts.headers||{}); return fetch(API + path, opts).then(function(r){ return r.json().then(function(d){ if(!r.ok) throw new Error(d.error||'Request failed'); return d; }); }); }
+  function pmsg(t){ var m=$('pmsg'); m.hidden=!t; m.textContent=t||''; }
+  function drawHist(h){
+    state.history = h || [];
+    $('hist').innerHTML = state.history.length ? state.history.slice(0,15).map(function(r){ var d=new Date(r.at); return '<div class="title-row" style="cursor:default"><span class="t" style="cursor:pointer" data-open="'+r.id+'"><b>'+esc(r.input.topic)+'</b><br><small style="color:var(--mute)">'+esc(r.input.platform)+' · '+d.toLocaleDateString()+' '+d.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'</small></span><button class="copy" type="button" data-del="'+r.id+'">Remove</button></div>'; }).join('') : '<div class="note">Your runs save here automatically.</div>';
+  }
+  function loadMember(){
+    $('member').hidden = false;
+    api('/api/seo-member').then(function(d){
+      drawHist(d.history);
+      var p = d.preset; if (p && !state.presetApplied) { state.presetApplied = true;
+        if (!$('brand').value) $('brand').value = p.brand || ''; if (!$('extra').value) $('extra').value = p.extra || '';
+        if ($('cat').value === 'auto' && p.category) $('cat').value = p.category; if (p.platform) { state.platform = p.platform; drawPlats(); } }
+    }).catch(function(e){ pmsg(e.message); });
+  }
+  $('savePreset').onclick = function(){ api('/api/seo-member', {method:'PUT', body: JSON.stringify({preset:{brand:$('brand').value, category:$('cat').value, extra:$('extra').value, platform:state.platform}})}).then(function(){ pmsg('Saved. These settings load automatically next time.'); }).catch(function(e){ pmsg(e.message); }); };
+  $('toggleHist').onclick = function(){ $('hist').hidden = !$('hist').hidden; };
+  $('hist').onclick = function(e){
+    var o = e.target.closest('[data-open]'), del = e.target.closest('[data-del]');
+    if (del) { api('/api/seo-member?id='+encodeURIComponent(del.dataset.del), {method:'DELETE'}).then(function(d){ drawHist(d.history); }); return; }
+    if (o) { var r = state.history.filter(function(x){ return x.id === o.dataset.open; })[0]; if (!r) return;
+      $('topic').value = r.input.topic; $('brand').value = r.input.brand||''; $('extra').value = r.input.extra||''; $('cat').value = r.input.category||'auto';
+      state.platform = r.input.platform; drawPlats(); state.off = {}; render(r.output); $('out').scrollIntoView({behavior:'smooth'}); }
+  };
   function drawAccess(){
+    $('member').hidden = !paid();
     if (paid()) {
       $('who').innerHTML = '<b>Member</b> · full access on this device';
       $('acts').innerHTML = '<button class="mini ghost" type="button" id="signout">Sign out</button>';
-      $('signout').onclick = function(){ store('tkseo_token', null); state.token=null; if(state.platform==='all') state.platform='youtube'; drawAccess(); drawPlats(); };
+      if (!state.memberLoaded) { state.memberLoaded = true; loadMember(); }
+      $('signout').onclick = function(){ state.memberLoaded = false; store('tkseo_token', null); state.token=null; if(state.platform==='all') state.platform='youtube'; drawAccess(); drawPlats(); };
       $('signin').classList.remove('show');
     } else {
       $('who').innerHTML = '<b>Free trial</b> · ' + (state.remaining==null ? '3 runs a week' : state.remaining + ' run' + (state.remaining===1?'':'s') + ' left this week') + ' · one platform at a time';
@@ -274,6 +309,7 @@ footer{color:var(--mute);font-size:12px;margin-top:30px;border-top:1px solid var
         if (d.access === 'trial') { state.remaining = d.remaining; drawAccess(); }
         render(d);
         if (d.access === 'trial') upsellAfter();
+        if (d.access === 'paid' && d.savedId) api('/api/seo-member').then(function(m){ drawHist(m.history); }).catch(function(){});
       })
       .catch(function(){ say('Network error. Try again.', true); })
       .then(function(){ btn.disabled = false; btn.textContent = 'Generate SEO'; });
