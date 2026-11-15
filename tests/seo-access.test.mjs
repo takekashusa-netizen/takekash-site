@@ -19,7 +19,16 @@ process.env.STRIPE_WEBHOOK_SECRET = "whsec_test"; process.env.ADMIN_KEY = "owner
 process.env.RESEND_API_KEY = "re_x"; process.env.FROM_EMAIL = "TakeKash <hi@takekash.com>"; process.env.OWNER_EMAIL = "owner@x.com";
 const sent = [];
 const realFetch = globalThis.fetch;
-globalThis.fetch = async (u, o) => { if (String(u).includes("resend.com")) { sent.push(JSON.parse(o.body)); return new Response("{}", { status: 200 }); } return realFetch(u, o); };
+let suggestDown = false;
+globalThis.fetch = async (u, o) => {
+  if (String(u).includes("resend.com")) { sent.push(JSON.parse(o.body)); return new Response("{}", { status: 200 }); }
+  if (String(u).includes("suggestqueries.google.com")) {
+    if (suggestDown) return new Response("x", { status: 503 });
+    const q = new URL(u).searchParams.get("q");
+    return new Response(JSON.stringify([q, [q + " loadout", q + " best settings", q + " tips", q]]), { status: 200 });
+  }
+  return realFetch(u, o);
+};
 
 const gen = (await import("../netlify/functions/seo-generate.mjs")).default;
 const auth = (await import("../netlify/functions/seo-auth.mjs")).default;
@@ -65,6 +74,16 @@ ok(link.html.includes("https://takekash.com/seo?t="), "link points back to the s
 r = await call(gen, { ...topic, platform: "all" }, { authorization: `Bearer ${token}` }, "1.1.1.1");
 ok(r.status === 200 && r.body.access === "paid" && Object.keys(r.body.results).length === 6 && r.body.tiers, "paid: all platforms + full tiers, even from a used-up trial IP");
 ok(r.body.results.youtube.titles.length === 6, "paid: full 6 titles");
+
+// --- Live search demand
+ok(Array.isArray(r.body.tiers.searched) && r.body.tiers.searched[0] === "warzone sniper loadout", "paid: 'Searched now' tier from live YouTube searches");
+ok(r.body.results.youtube.tags[0] === "warzone sniper loadout" && r.body.results.youtube.tagChars <= 500, "paid: real searches lead the YouTube tags, still within 500 chars");
+r = await call(gen, topic, {}, "5.5.5.5");
+ok(r.body.searchedPreview && r.body.searchedPreview.length === 2, "trial: 2 live searches shown as a preview");
+suggestDown = true;
+r = await call(gen, { ...topic, platform: "all" }, { authorization: `Bearer ${token}` });
+ok(r.status === 200 && !r.body.tiers.searched, "search service down: generation still works, tier just omitted");
+suggestDown = false;
 
 // --- Tampered token
 r = await call(gen, topic, { authorization: `Bearer ${token.slice(0, -2)}xx` });

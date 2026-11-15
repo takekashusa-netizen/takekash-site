@@ -11,6 +11,31 @@ const cors = (req) => {
 };
 const json = (req, status, body) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...cors(req) } });
 
+// Live search demand: what people are actually typing into YouTube search right now
+// (Google's public suggest endpoint, no key). Fails soft: no network -> no extra tier.
+async function searchedNow(q, ms = 1500) {
+  if (!q) return [];
+  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), ms);
+  try {
+    const r = await fetch(`https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&hl=en&q=${encodeURIComponent(q)}`, { signal: ctl.signal });
+    if (!r.ok) return [];
+    const d = await r.json();
+    return (Array.isArray(d[1]) ? d[1] : []).map((x) => String(x).toLowerCase().trim()).filter((x) => x && x !== q && x.length <= 60).slice(0, 10);
+  } catch { return []; } finally { clearTimeout(t); }
+}
+
+function addSearched(out, searched) {
+  if (!searched.length) return out;
+  out.tiers = out.tiers || {};
+  out.tiers.searched = searched;
+  const yt = out.results && out.results.youtube;
+  if (yt && yt.tags) {   // real searches go first in the YouTube tag budget
+    const packed = engine.packYouTubeTags(searched.slice(0, 5).concat(yt.tags.filter((t) => !searched.includes(t))), 500);
+    yt.tags = packed.tags; yt.tagChars = packed.used;
+  }
+  return out;
+}
+
 export default async (req, context) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(req) });
   if (req.method !== "POST") return json(req, 405, { error: "Method not allowed" });
@@ -44,10 +69,14 @@ export default async (req, context) => {
     opts.seed = 7; // no remixing on trial
     const t = await access.useTrial(store, context.ip, env);
     if (!t.ok) return json(req, 429, { error: "You've used your free runs for this week.", code: "trial_used", resetsAt: t.resetsAt });
-    return json(req, 200, { access: "trial", remaining: t.remaining, ...access.limitForTrial(engine.generate(opts)) });
+    const searchedT = await searchedNow(engine.generate({ ...opts, platform: "youtube" }).analysis.core);
+    const limited = access.limitForTrial(engine.generate(opts));
+    if (searchedT.length) limited.searchedPreview = searchedT.slice(0, 2);   // tease 2 live searches on the trial
+    return json(req, 200, { access: "trial", remaining: t.remaining, ...limited });
   }
   if (!engine.PLATFORMS[opts.platform] && opts.platform !== "all") opts.platform = "all";
-  return json(req, 200, { access: "paid", ...engine.generate(opts) });
+  const full = engine.generate(opts);
+  return json(req, 200, { access: "paid", ...addSearched(full, await searchedNow(full.analysis.core)) });
 };
 
 export const config = { path: "/api/seo-generate" };
