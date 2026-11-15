@@ -1,3 +1,7 @@
+UPDATE 2026-11-14: the admin page no longer uses ADMIN_KEY (its old value was committed to
+this public repo). Open /admin.html, enter the owner email (OWNER_EMAIL in Netlify), and open
+the emailed sign-in link. The ADMIN_KEY env var can be deleted from Netlify.
+
 TAKEKASH.COM ADMIN DASHBOARD — SETUP
 =====================================
 

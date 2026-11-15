@@ -150,9 +150,9 @@
   <div id="gate">
     <div class="box">
       <h1>TakeKash <span>Admin</span></h1>
-      <div class="sub">Owner-only. Enter the admin key.</div>
-      <input type="password" id="key-input" placeholder="Admin key" autocomplete="off" onkeydown="if(event.key==='Enter') unlock()" />
-      <button onclick="unlock()">Unlock</button>
+      <div class="sub">Owner-only. We'll email a sign-in link to the owner address.</div>
+      <input type="email" id="key-input" placeholder="Owner email" autocomplete="email" onkeydown="if(event.key==='Enter') unlock()" />
+      <button onclick="unlock()">Email me a sign-in link</button>
       <div id="gate-error"></div>
     </div>
   </div>
@@ -192,7 +192,8 @@
   </div>
 
 <script>
-  const KEY_STORAGE = 'tk_admin_key';
+  const KEY_STORAGE = 'tkseo_token';   // same signed owner token SEO Studio stores
+  const store = { get: (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } } };
 
   function fmtDate(s) {
     if (!s) return '—';
@@ -207,23 +208,20 @@
   }
 
   async function unlock() {
-    const key = document.getElementById('key-input').value.trim();
-    document.getElementById('gate-error').textContent = '';
-    if (!key) return;
-    const ok = await tryKey(key);
-    if (ok) {
-      sessionStorage.setItem(KEY_STORAGE, key);
-      document.getElementById('gate').style.display = 'none';
-      document.getElementById('dash').classList.add('visible');
-      render(window.__tkData);
-    } else {
-      document.getElementById('gate-error').textContent = 'Incorrect key.';
-    }
+    const email = document.getElementById('key-input').value.trim();
+    const out = document.getElementById('gate-error');
+    out.textContent = '';
+    if (!email) return;
+    try {
+      const d = await fetch('/api/seo-auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) }).then(r => r.json());
+      out.style.color = '#9ca3af';
+      out.textContent = (d.message || d.error) + ' Open the link, then come back to this page.';
+    } catch (e) { out.textContent = 'Network error. Try again.'; }
   }
 
   async function tryKey(key) {
     try {
-      const resp = await fetch('/api/admin-data', { headers: { 'x-admin-key': key } });
+      const resp = await fetch('/api/admin-data', { headers: { 'Authorization': 'Bearer ' + key } });
       if (!resp.ok) return false;
       window.__tkData = await resp.json();
       return true;
@@ -233,7 +231,7 @@
   }
 
   async function loadData() {
-    const key = sessionStorage.getItem(KEY_STORAGE);
+    const key = store.get(KEY_STORAGE);
     if (!key) return;
     const ok = await tryKey(key);
     const errEl = document.getElementById('err');
@@ -309,7 +307,7 @@
 
   // auto-unlock if a key is already remembered for this tab
   (async function init() {
-    const stored = sessionStorage.getItem(KEY_STORAGE);
+    const stored = store.get(KEY_STORAGE);
     if (!stored) return;
     const ok = await tryKey(stored);
     if (ok) {
@@ -317,7 +315,7 @@
       document.getElementById('dash').classList.add('visible');
       render(window.__tkData);
     } else {
-      sessionStorage.removeItem(KEY_STORAGE);
+      document.getElementById('gate-error').textContent = 'Signed-in account is not the owner. Request a new link.';
     }
   })();
 </script>
