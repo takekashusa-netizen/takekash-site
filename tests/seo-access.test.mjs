@@ -34,6 +34,8 @@ const gen = (await import("../netlify/functions/seo-generate.mjs")).default;
 const auth = (await import("../netlify/functions/seo-auth.mjs")).default;
 const webhook = require("../netlify/functions/stripe-webhook.js").handler;
 const member = (await import("../netlify/functions/seo-member.mjs")).default;
+const funnelFn = (await import("../netlify/functions/funnel.mjs")).default;
+const fcall = async (method, body, tok) => { const r = await funnelFn(new Request("https://takekash.netlify.app/api/" + (method === "POST" ? "track" : "funnel"), { method, headers: { "content-type": "application/json", origin: "https://takekash.com", ...(tok ? { authorization: `Bearer ${tok}` } : {}) }, body: body ? JSON.stringify(body) : undefined })); return { status: r.status, body: await r.json() }; };
 const mcall = async (method, body, tok, qs = "") => { const r = await member(new Request("https://takekash.netlify.app/api/seo-member" + qs, { method, headers: { "content-type": "application/json", origin: "https://takekash.com", ...(tok ? { authorization: `Bearer ${tok}` } : {}) }, body: body ? JSON.stringify(body) : undefined })); return { status: r.status, body: await r.json() }; };
 
 const post = (body, headers = {}) => new Request("https://takekash.netlify.app/api/x", { method: "POST", headers: { "content-type": "application/json", origin: "https://takekash.com", ...headers }, body: JSON.stringify(body) });
@@ -125,5 +127,13 @@ ok((await webhook(bad)).statusCode === 400, "unsigned webhook rejected");
 // --- Rate limit on sign-in emails
 const before = sent.length; for (let i = 0; i < 5; i++) await call(auth, { email: "buyer@mail.com" });
 ok(sent.length - before === 2, "sign-in emails capped at 3/hour per address");
+
+// --- Funnel
+ok((await fcall("POST", { event: "unlock_click" })).status === 200, "page events are counted");
+ok((await fcall("POST", { event: "purchase" })).status === 400, "visitors can't fake server-side events like purchases");
+ok((await fcall("GET", null, token)).status === 401, "a regular member can't see the funnel");
+const fr = await fcall("GET", null, ownerTok);
+ok(fr.status === 200 && fr.body.totals.trial_run >= 4 && fr.body.totals.trial_limit_hit >= 1 && fr.body.totals.purchase === 1 && fr.body.totals.unlock_click === 1 && fr.body.totals.paid_run >= 1,
+   `owner funnel adds up: ${JSON.stringify(fr.body.totals)}`);
 
 await server.stop(); console.log(`\nALL ${pass} CHECKS PASS`);

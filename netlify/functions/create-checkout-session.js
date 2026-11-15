@@ -20,6 +20,9 @@ const ALLOWED_ORIGINS = new Set([
   "https://www.takekash.com",
 ]);
 
+const { connectLambda, getStore } = require("@netlify/blobs");
+const funnel = require("../../lib/seo/funnel.cjs");
+
 const json = (statusCode, body) => ({
   statusCode,
   headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
@@ -77,5 +80,6 @@ exports.handler = async (event) => {
     console.error("Stripe error:", JSON.stringify(data && data.error));
     return json(502, { error: (data && data.error && data.error.message) || "Checkout failed" });
   }
+  try { connectLambda(event); await funnel.track(getStore("funnel"), "checkout_started"); } catch (e) { console.error("funnel", e); }
   return json(200, { url: data.url });
 };

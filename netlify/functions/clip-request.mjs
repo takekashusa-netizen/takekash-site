@@ -2,6 +2,7 @@
 // Saves the request (Netlify Blobs "clip-requests"), emails the owner the order, and confirms to the customer.
 import { getStore } from "@netlify/blobs";
 import crypto from "crypto";
+import funnel from "../../lib/seo/funnel.cjs";
 
 const ORIGINS = new Set(["https://takekash.com", "https://www.takekash.com", "https://takekash.netlify.app"]);
 const cors = (req) => { const o = req.headers.get("origin"); return ORIGINS.has(o) ? { "Access-Control-Allow-Origin": o, "Access-Control-Allow-Headers": "Content-Type", Vary: "Origin" } : {}; };
@@ -38,6 +39,7 @@ export default async (req, context) => {
   rl.n += 1; await store.setJSON(ipKey, rl);
 
   const id = `${new Date().toISOString().slice(0, 10)}-${crypto.randomBytes(4).toString("hex")}`;
+  await funnel.track(getStore("funnel"), "clip_request");
   await store.setJSON(`req:${id}`, { id, url, email, at: new Date().toISOString(), status: "new" });
 
   try {

@@ -118,6 +118,7 @@ a.dl{display:block;text-align:center;text-decoration:none}
   var $=function(i){return document.getElementById(i);}; $('yr').textContent=new Date().getFullYear();
   var API=/netlify\.app$|^localhost|^127\./.test(location.hostname)?'':'https://takekash.netlify.app';
   var state={frames:[],sel:0,size:'16:9',title:''};
+  try{fetch(API+'/api/track',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({event:'page_kit'}),keepalive:true}).catch(function(){});}catch(e){}
   function token(){try{return localStorage.getItem('tkseo_token');}catch(e){return null;}}
   function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function toast(m){var t=$('toast');t.textContent=m||'Copied';t.classList.add('show');setTimeout(function(){t.classList.remove('show');},1200);}
@@ -199,6 +200,7 @@ a.dl{display:block;text-align:center;text-decoration:none}
           (hs?'<label style="margin-top:12px">Hashtags</label><div class="note" style="color:var(--ink)">'+esc(hs)+'</div><button type="button" class="copy" data-copy="'+esc(hs)+'" style="margin-top:6px">Copy hashtags</button>':'')+
           (d.access==='trial'?'<div class="note" style="margin-top:10px">Free trial: '+d.remaining+' run(s) left this week. <a href="/seo">Members get every title, platform and tag tier.</a></div>':'');
       }
+      try{fetch(API+'/api/track',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({event:'kit_made'}),keepalive:true}).catch(function(){});}catch(e){}
       $('ttext').value=state.title;$('result').hidden=false;render();$('result').scrollIntoView({behavior:'smooth'});
     }catch(e){$('msg').textContent=e.message;}
     btn.disabled=false;btn.textContent='Make my kit';

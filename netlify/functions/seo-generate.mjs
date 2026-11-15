@@ -3,6 +3,7 @@
 import { getStore } from "@netlify/blobs";
 import engine from "../../lib/seo/engine.cjs";
 import access from "../../lib/seo/access.cjs";
+import funnel from "../../lib/seo/funnel.cjs";
 
 const ORIGINS = new Set(["https://takekash.com", "https://www.takekash.com", "https://takekash.netlify.app"]);
 const cors = (req) => {
@@ -65,9 +66,10 @@ export default async (req, context) => {
   };
 
   if (tier === "trial") {
-    if (!access.TRIAL_PLATFORMS.has(opts.platform)) return json(req, 403, { error: "All-platforms mode is for members. Pick one platform for your free run.", code: "locked" });
+    if (!access.TRIAL_PLATFORMS.has(opts.platform)) { await funnel.track(getStore("funnel"), "locked_feature"); return json(req, 403, { error: "All-platforms mode is for members. Pick one platform for your free run.", code: "locked" }); }
     opts.seed = 7; // no remixing on trial
     const t = await access.useTrial(store, context.ip, env);
+    await funnel.track(getStore("funnel"), t.ok ? "trial_run" : "trial_limit_hit");
     if (!t.ok) return json(req, 429, { error: "You've used your free runs for this week.", code: "trial_used", resetsAt: t.resetsAt });
     const searchedT = await searchedNow(engine.generate({ ...opts, platform: "youtube" }).analysis.core);
     const limited = access.limitForTrial(engine.generate(opts));
@@ -87,6 +89,7 @@ export default async (req, context) => {
       full.savedId = run.id;
     } catch (e) { console.error("history save failed", e); }
   }
+  await funnel.track(getStore("funnel"), "paid_run");
   return json(req, 200, { access: "paid", ...full });
 };
 

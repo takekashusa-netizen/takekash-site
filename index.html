@@ -367,6 +367,7 @@ function showPage(id){
 }
 function toggleMenu(){document.getElementById('mobile-menu').classList.toggle('open');}
 function closeMenu(){document.getElementById('mobile-menu').classList.remove('open');}
+try{fetch('/api/track',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({event:'page_home'}),keepalive:true}).catch(function(){});}catch(e){}
 function goHome(anchor){
   if(!document.getElementById('page-home').classList.contains('active'))showPage('home');
   closeMenu();

@@ -2,6 +2,7 @@
 // Always answers the same way, so it never reveals who is or isn't a customer.
 import { getStore } from "@netlify/blobs";
 import access from "../../lib/seo/access.cjs";
+import funnel from "../../lib/seo/funnel.cjs";
 
 const ORIGINS = new Set(["https://takekash.com", "https://www.takekash.com", "https://takekash.netlify.app"]);
 const cors = (req) => {
@@ -17,6 +18,7 @@ export default async (req) => {
   let email;
   try { email = access.normEmail((await req.json()).email); } catch { return json(req, 400, { error: "Invalid request" }); }
   if (!access.validEmail(email)) return json(req, 400, { error: "Enter a valid email" });
+  await funnel.track(getStore("funnel"), "signin_requested");
 
   const env = process.env;
   const store = getStore("seo-access");
