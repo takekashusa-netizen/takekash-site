@@ -91,7 +91,7 @@ seo = seo.replace(/https:\/\/takekash\.com\/seo/g, `${SITE}/seo`); // canonical/
 fs.writeFileSync(path.join(ROOT, "seo/index.html"), seo);
 
 const today = new Date().toISOString().slice(0, 10);
-const urls = ["/", "/seo"].concat(TOPICS.map((t) => `/seo/${t[0]}/`));
+const urls = ["/", "/seo", "/kit"].concat(TOPICS.map((t) => `/seo/${t[0]}/`));
 fs.writeFileSync(path.join(ROOT, "sitemap.xml"), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${SITE}${u}</loc><lastmod>${today}</lastmod></url>`).join("\n")}\n</urlset>\n`);
 fs.writeFileSync(path.join(ROOT, "robots.txt"), `User-agent: *\nDisallow: /admin.html\nDisallow: /api/\nSitemap: ${SITE}/sitemap.xml\n`);
 console.log(`Built ${TOPICS.length} topic pages + sitemap (${urls.length} URLs)`);

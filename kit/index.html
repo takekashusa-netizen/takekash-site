@@ -179,7 +179,7 @@ a.dl{display:block;text-align:center;text-decoration:none}
   $('ttext').oninput=render;
 
   function shortTitle(t){ // thumbnail text = punchy, <= 5 words, not the full SEO title
-    t=t.replace(/\(\d{4}\)/g,'').replace(/[|:].*$/,'').trim();var w=t.split(/\s+/);return w.slice(0,5).join(' ');
+    t=t.replace(/\(\d{4}\)/g,'').replace(/[|:].*$/,'').trim();var head=t.split(/\s(?:That|Which|Who|Nobody|You|Is|Are|Was|In|Of|For|With|Like|But)\s/)[0];var w=(head.split(/\s+/).length>=2?head:t).split(/\s+/);return w.slice(0,5).join(' ');
   }
   $('make').onclick=async function(){
     if(!state.frames.length){$('msg').textContent='Add a clip or image first.';return;}
