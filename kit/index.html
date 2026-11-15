@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Upload Kit: Thumbnail, Title &amp; Tags in One Step | TakeKash</title>
+<meta name="description" content="Drop a clip. Get the strongest frame as a thumbnail with your title on it, plus titles, descriptions and tags for YouTube, TikTok and Instagram.">
+<link rel="canonical" href="https://takekash.netlify.app/kit">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=Anton&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0d0c;--panel:#131715;--panel2:#1a1f1c;--line:#26302b;--ink:#eef3ef;--mute:#93a39a;--kash:#2fe07c;--kash2:#1fb862;--warn:#f5b83d;--bad:#ff6b6b;--r:14px}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif;-webkit-text-size-adjust:100%}
+a{color:var(--kash)}
+.wrap{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+header.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.logo{font:700 20px 'Space Grotesk',sans-serif;letter-spacing:-.02em;color:var(--ink);text-decoration:none}.logo b{color:var(--kash)}
+.pill{font-size:12px;color:var(--mute);border:1px solid var(--line);padding:4px 10px;border-radius:99px}
+h1{font:700 clamp(28px,6vw,44px)/1.08 'Space Grotesk',sans-serif;letter-spacing:-.03em;margin:8px 0 10px}
+h1 em{font-style:normal;color:var(--kash)}
+.lede{color:var(--mute);max-width:640px;margin:0 0 22px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+label{display:block;font-size:12px;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;margin:0 0 6px}
+input,select,textarea{width:100%;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px;font:inherit;font-size:16px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--kash);outline-offset:-1px;border-color:transparent}
+.grid{display:grid;gap:14px}.g2{grid-template-columns:1fr 1fr}
+@media(max-width:640px){.g2{grid-template-columns:1fr}}
+.plats{display:flex;flex-wrap:wrap;gap:8px}
+.plats button{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:99px;padding:8px 14px;font:500 14px Inter,sans-serif;cursor:pointer}
+.plats button[aria-pressed=true]{background:var(--kash);color:#04210f;border-color:var(--kash)}
+.go{display:flex;gap:10px;margin-top:4px}
+.btn{background:var(--kash);color:#04210f;border:0;border-radius:10px;padding:13px 18px;font:700 15px 'Space Grotesk',sans-serif;cursor:pointer;flex:1}
+.btn:active{transform:translateY(1px)}.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);flex:0 0 auto}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 10px;color:var(--mute);font-size:13px}
+.meta-row span{background:var(--panel);border:1px solid var(--line);padding:4px 10px;border-radius:99px}.meta-row b{color:var(--ink);font-weight:600}
+.results{display:grid;gap:14px}
+.pcard h2{font:700 18px 'Space Grotesk',sans-serif;margin:0 0 12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sec{margin-top:14px}.sec:first-of-type{margin-top:0}
+.sec h3{font-size:12px;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;margin:0 0 8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.title-row{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:10px 12px;margin-bottom:6px;font:inherit;cursor:pointer}
+.title-row:hover{border-color:var(--kash2)}.title-row .t{flex:1}
+.len{font:600 11px Inter,sans-serif;padding:2px 7px;border-radius:99px;background:#183b26;color:var(--kash);white-space:nowrap}
+.len.long{background:#3b2f12;color:var(--warn)}
+textarea{min-height:120px;resize:vertical;font-size:14px;line-height:1.45}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:5px 9px;font-size:13px;cursor:pointer;user-select:none}
+.chip.off{opacity:.38;text-decoration:line-through}
+.copy{background:transparent;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:5px 10px;font:600 12px Inter,sans-serif;cursor:pointer;text-transform:none;letter-spacing:0;white-space:nowrap}
+.copy.ok{border-color:var(--kash);color:var(--kash)}
+.meter{height:6px;background:var(--panel2);border-radius:99px;overflow:hidden;margin-top:8px}.meter i{display:block;height:100%;background:var(--kash)}
+.note{font-size:12px;color:var(--mute);margin-top:6px}
+.tiers .tier{margin-top:12px}.tier h3 small{font-weight:500;text-transform:none;letter-spacing:0;color:var(--mute)}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:6px 10px;font-size:14px}.kv dt{color:var(--mute)}.kv dd{margin:0;word-break:break-word}
+.faq{margin-top:34px}.faq h2{font:700 22px 'Space Grotesk',sans-serif}.faq details{border-top:1px solid var(--line);padding:12px 0}.faq summary{cursor:pointer;font-weight:600}.faq p{color:var(--mute);margin:8px 0 0}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(80px);background:var(--kash);color:#04210f;font-weight:700;padding:10px 16px;border-radius:99px;transition:.25s;z-index:9}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.access{display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:14px}
+.access .who{font-size:14px}.access .who b{color:var(--kash)}
+.access .acts{display:flex;gap:8px;flex-wrap:wrap}
+.mini{background:var(--kash);color:#04210f;border:0;border-radius:9px;padding:9px 13px;font:700 13px 'Space Grotesk',sans-serif;cursor:pointer}
+.mini.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.signin{display:none;gap:8px;width:100%}.signin.show{display:flex}.signin input{flex:1;padding:10px}
+.msg{width:100%;font-size:13px;color:var(--mute)}.msg.err{color:var(--bad)}
+.upsell{border-color:var(--kash2);background:linear-gradient(180deg,#132219,var(--panel))}
+.upsell h2{font:700 20px 'Space Grotesk',sans-serif;margin:0 0 8px}.upsell ul{margin:0 0 14px;padding-left:18px;color:var(--mute)}
+.plats button.lock::after{content:' 🔒'}
+.empty{color:var(--mute);text-align:center;padding:26px 10px}
+footer{color:var(--mute);font-size:12px;margin-top:30px;border-top:1px solid var(--line);padding-top:14px}
+</style>
+<style>
+.drop{border:2px dashed var(--line);border-radius:var(--r);padding:28px 16px;text-align:center;cursor:pointer;color:var(--mute)}
+.drop.on{border-color:var(--kash);color:var(--ink)}
+.frames{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.frames img{width:100%;border-radius:8px;border:2px solid transparent;cursor:pointer;display:block}
+.frames img.sel{border-color:var(--kash)}
+.frames .sc{font-size:11px;color:var(--mute);text-align:center}
+canvas#thumb{width:100%;border-radius:10px;background:#000;display:block}
+.seg{display:flex;gap:6px;flex-wrap:wrap}.seg button{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:99px;padding:7px 12px;font:500 13px Inter;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--kash);color:#04210f;border-color:var(--kash)}
+a.dl{display:block;text-align:center;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><a class="logo" href="/">Take<b>Kash</b></a><span style="display:flex;gap:8px"><a class="pill" href="/seo" style="text-decoration:none">SEO Studio</a><a class="pill" href="/#get-clips" style="text-decoration:none;color:var(--kash);border-color:var(--kash2)">Get my clips</a></span></header>
+  <h1>Upload Kit: <em>thumbnail, title &amp; tags</em> in one step.</h1>
+  <p class="lede">1. Drop your clip or a screenshot. 2. Pick the frame. 3. Download the thumbnail and copy the title, description and tags. Your video never leaves your device.</p>
+
+  <section class="card grid">
+    <div>
+      <label>1 · Your clip or image</label>
+      <div class="drop" id="drop">Tap to choose a video or image, or drop it here<br><small>MP4, MOV, WEBM, PNG or JPG</small></div>
+      <input type="file" id="file" accept="video/*,image/*" hidden>
+      <div class="frames" id="frames"></div>
+      <div class="note" id="fnote"></div>
+    </div>
+    <div class="grid g2">
+      <div><label for="topic">2 · What's it about?</label><input id="topic" placeholder="e.g. Warzone 1v4 clutch"></div>
+      <div><label>Thumbnail size</label><div class="seg" id="size"><button type="button" data-s="16:9" aria-pressed="true">YouTube 16:9</button><button type="button" data-s="9:16" aria-pressed="false">Shorts / TikTok 9:16</button></div></div>
+    </div>
+    <div class="go"><button class="btn" type="button" id="make">Make my kit</button></div>
+    <div class="note" id="msg"></div>
+  </section>
+
+  <section class="card" id="result" hidden style="margin-top:14px">
+    <h2 style="font:700 18px Space Grotesk,sans-serif;margin:0 0 10px">3 · Your thumbnail</h2>
+    <canvas id="thumb"></canvas>
+    <div class="grid g2" style="margin-top:10px">
+      <div><label for="ttext">Text on thumbnail</label><input id="ttext" maxlength="40"></div>
+      <div style="display:flex;align-items:flex-end"><a class="btn dl" id="dl" download="thumbnail.jpg">Download thumbnail</a></div>
+    </div>
+    <div id="seo" style="margin-top:16px"></div>
+  </section>
+  <footer>© <span id="yr"></span> TakeKash · <a href="/seo">SEO Studio</a> · <a href="/">Get clips</a></footer>
+</div>
+<div class="toast" id="toast">Copied</div>
+<script>
+(function(){
+  var $=function(i){return document.getElementById(i);}; $('yr').textContent=new Date().getFullYear();
+  var API=/netlify\.app$|^localhost|^127\./.test(location.hostname)?'':'https://takekash.netlify.app';
+  var state={frames:[],sel:0,size:'16:9',title:''};
+  function token(){try{return localStorage.getItem('tkseo_token');}catch(e){return null;}}
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function toast(m){var t=$('toast');t.textContent=m||'Copied';t.classList.add('show');setTimeout(function(){t.classList.remove('show');},1200);}
+  function copy(x){try{navigator.clipboard.writeText(x).then(function(){toast();});}catch(e){toast('Press and hold to copy');}}
+
+  // ---- frame scoring: sharpness (edge energy), contrast, colorfulness, not-too-dark ----
+  function score(cv){
+    var w=160,h=Math.round(160*cv.height/cv.width),c=document.createElement('canvas');c.width=w;c.height=h;
+    var x=c.getContext('2d');x.drawImage(cv,0,0,w,h);var d=x.getImageData(0,0,w,h).data;
+    var g=new Float32Array(w*h),sum=0,sq=0,col=0;
+    for(var i=0;i<w*h;i++){var r=d[i*4],gg=d[i*4+1],b=d[i*4+2];var l=.299*r+.587*gg+.114*b;g[i]=l;sum+=l;sq+=l*l;col+=Math.abs(r-gg)+Math.abs(.5*(r+gg)-b);}
+    var n=w*h,mean=sum/n,std=Math.sqrt(Math.max(0,sq/n-mean*mean)),edge=0;
+    for(var y=1;y<h-1;y++)for(var xx=1;xx<w-1;xx++){var k=y*w+xx;var lap=4*g[k]-g[k-1]-g[k+1]-g[k-w]-g[k+w];edge+=lap*lap;}
+    edge=Math.sqrt(edge/n);
+    var dark=mean<35||mean>230?0.4:1;
+    return Math.round(dark*(edge*1.2+std*0.8+col/n*0.6));
+  }
+  function grab(video,t){return new Promise(function(res){video.currentTime=t;video.onseeked=function(){var c=document.createElement('canvas');c.width=video.videoWidth;c.height=video.videoHeight;c.getContext('2d').drawImage(video,0,0);res(c);};});}
+  async function fromVideo(file){
+    var v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='auto';v.src=URL.createObjectURL(file);
+    await new Promise(function(r,j){v.onloadedmetadata=r;v.onerror=function(){j(new Error('This video format can\'t be read in your browser. Try MP4.'));};});
+    var n=12,out=[];
+    for(var i=0;i<n;i++){$('fnote').textContent='Scanning frames '+(i+1)+'/'+n+'...';var t=v.duration*(i+0.5)/n;var c=await grab(v,t);out.push({c:c,t:t,s:score(c)});}
+    URL.revokeObjectURL(v.src);return out;
+  }
+  async function fromImage(file){var img=new Image();img.src=URL.createObjectURL(file);await img.decode();var c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;c.getContext('2d').drawImage(img,0,0);return [{c:c,t:0,s:score(c)}];}
+  async function load(file){
+    $('frames').innerHTML='';$('fnote').textContent='Reading...';
+    try{state.frames=(file.type.indexOf('video')===0?await fromVideo(file):await fromImage(file)).sort(function(a,b){return b.s-a.s;}).slice(0,6);}
+    catch(e){$('fnote').textContent=e.message;return;}
+    state.sel=0;drawFrames();$('fnote').textContent=state.frames.length>1?'Best frames first (sharpest, most contrast and color). Tap to choose.':'';
+    if(!$('topic').value)$('topic').value=file.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').slice(0,60);
+  }
+  function drawFrames(){$('frames').innerHTML=state.frames.map(function(f,i){return '<div><img src="'+f.c.toDataURL('image/jpeg',.6)+'" class="'+(i===state.sel?'sel':'')+'" data-i="'+i+'"><div class="sc">'+(i===0?'⭐ best · ':'')+(f.t?Math.round(f.t)+'s':'image')+'</div></div>';}).join('');}
+  $('frames').onclick=function(e){var i=e.target.dataset&&e.target.dataset.i;if(i!=null){state.sel=+i;drawFrames();if(!$('result').hidden)render();}};
+  $('drop').onclick=function(){$('file').click();};
+  $('file').onchange=function(){if(this.files[0])load(this.files[0]);};
+  ['dragover','dragenter'].forEach(function(ev){$('drop').addEventListener(ev,function(e){e.preventDefault();this.classList.add('on');});});
+  ['dragleave','drop'].forEach(function(ev){$('drop').addEventListener(ev,function(e){e.preventDefault();this.classList.remove('on');if(ev==='drop'&&e.dataTransfer.files[0])load(e.dataTransfer.files[0]);});});
+  $('size').onclick=function(e){var b=e.target.closest('button');if(!b)return;state.size=b.dataset.s;[].forEach.call(this.children,function(c){c.setAttribute('aria-pressed',c===b);});if(!$('result').hidden)render();};
+
+  // ---- thumbnail render: cover-crop the frame, bold outlined text, bottom gradient ----
+  function render(){
+    var f=state.frames[state.sel];if(!f)return;
+    var W=state.size==='16:9'?1280:1080,H=state.size==='16:9'?720:1920,cv=$('thumb');cv.width=W;cv.height=H;var x=cv.getContext('2d');
+    var sc=Math.max(W/f.c.width,H/f.c.height),dw=f.c.width*sc,dh=f.c.height*sc;
+    x.filter='contrast(1.12) saturate(1.25)';x.drawImage(f.c,(W-dw)/2,(H-dh)/2,dw,dh);x.filter='none';
+    var gr=x.createLinearGradient(0,H*0.45,0,H);gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,'rgba(0,0,0,.85)');x.fillStyle=gr;x.fillRect(0,0,W,H);
+    var text=($('ttext').value||state.title||'').toUpperCase().trim();
+    if(text){
+      var words=text.split(/\s+/),lines=[],cur='',size=state.size==='16:9'?110:120;x.font='400 '+size+'px Anton, Impact, sans-serif';
+      var maxW=W*0.9;words.forEach(function(w){var t=cur?cur+' '+w:w;if(x.measureText(t).width>maxW&&cur){lines.push(cur);cur=w;}else cur=t;});if(cur)lines.push(cur);
+      lines=lines.slice(0,3);var lh=size*1.02,y=H-(state.size==='16:9'?50:260)-lh*(lines.length-1);
+      x.textAlign='center';x.lineJoin='round';
+      lines.forEach(function(l,i){x.lineWidth=size*0.16;x.strokeStyle='#000';x.strokeText(l,W/2,y+i*lh);x.fillStyle=i===lines.length-1?'#2fe07c':'#fff';x.fillText(l,W/2,y+i*lh);});
+    }
+    $('dl').href=cv.toDataURL('image/jpeg',.92);$('dl').download='thumbnail-'+state.size.replace(':','x')+'.jpg';
+  }
+  $('ttext').oninput=render;
+
+  function shortTitle(t){ // thumbnail text = punchy, <= 5 words, not the full SEO title
+    t=t.replace(/\(\d{4}\)/g,'').replace(/[|:].*$/,'').trim();var w=t.split(/\s+/);return w.slice(0,5).join(' ');
+  }
+  $('make').onclick=async function(){
+    if(!state.frames.length){$('msg').textContent='Add a clip or image first.';return;}
+    var topic=$('topic').value.trim();if(!topic){$('msg').textContent='Tell us what the clip is about.';$('topic').focus();return;}
+    var btn=this;btn.disabled=true;btn.textContent='Building...';$('msg').textContent='';
+    var platform=state.size==='16:9'?'youtube':'shorts',h={'Content-Type':'application/json'},tk=token();if(tk)h.Authorization='Bearer '+tk;
+    try{
+      var r=await fetch(API+'/api/seo-generate',{method:'POST',headers:h,body:JSON.stringify({topic:topic,platform:platform})});var d=await r.json();
+      if(r.status===429){$('msg').innerHTML='You\'ve used this week\'s free runs. <a href="/seo">Unlock SEO Studio</a> for unlimited kits.';state.title=topic;}
+      else if(!r.ok){throw new Error(d.error||'Could not generate titles');}
+      else{
+        var res=d.results[platform];state.title=shortTitle(res.titles[0].text);
+        var tags=(res.tags||[]).join(', '),hs=(res.hashtags||[]).join(' ');
+        $('seo').innerHTML='<label>Titles (tap to copy)</label>'+res.titles.map(function(t){return '<button type="button" class="title-row" data-copy="'+esc(t.text)+'"><span class="t">'+esc(t.text)+'</span><span class="len'+(t.fits?'':' long')+'">'+t.len+'</span></button>';}).join('')+
+          '<label style="margin-top:12px">Description</label><textarea readonly>'+esc(res.description)+'</textarea><button type="button" class="copy" data-copy="'+esc(res.description)+'" style="margin-top:6px">Copy description</button>'+
+          (tags?'<label style="margin-top:12px">Tags</label><div class="note" style="color:var(--ink)">'+esc(tags)+'</div><button type="button" class="copy" data-copy="'+esc(tags)+'" style="margin-top:6px">Copy tags</button>':'')+
+          (hs?'<label style="margin-top:12px">Hashtags</label><div class="note" style="color:var(--ink)">'+esc(hs)+'</div><button type="button" class="copy" data-copy="'+esc(hs)+'" style="margin-top:6px">Copy hashtags</button>':'')+
+          (d.access==='trial'?'<div class="note" style="margin-top:10px">Free trial: '+d.remaining+' run(s) left this week. <a href="/seo">Members get every title, platform and tag tier.</a></div>':'');
+      }
+      $('ttext').value=state.title;$('result').hidden=false;render();$('result').scrollIntoView({behavior:'smooth'});
+    }catch(e){$('msg').textContent=e.message;}
+    btn.disabled=false;btn.textContent='Make my kit';
+  };
+  document.addEventListener('click',function(e){var c=e.target.closest('[data-copy]');if(c)copy(c.dataset.copy);});
+})();
+</script>
+</body>
+</html>
