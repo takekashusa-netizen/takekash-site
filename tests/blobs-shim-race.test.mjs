@@ -1,0 +1,10 @@
+process.env.DATA_DIR = "/tmp/racedata";
+const { getStore } = await import("../server/blobs-shim/index.mjs");
+const { createRequire } = await import("module"); const require = createRequire(import.meta.url);
+const D = require("../lib/seo/delivery.cjs");
+const q = getStore("clip-quota");
+const rs = await Promise.all(Array.from({ length: 8 }, () => D.reserve(q, "racer@x.com", "free")));
+const total = rs.reduce((a, r) => a + r.clips, 0);
+const claims = await Promise.all(Array.from({ length: 8 }, () => getStore("clip-requests").set("claim:abc", "x", { onlyIfNew: true })));
+console.log("8 parallel free reservations granted:", total, total === 3 ? "OK" : "OVERSPENT", "| parallel claims won:", claims.filter((c) => c.modified).length, "(expect 1)");
+process.exit(total === 3 ? 0 : 1);

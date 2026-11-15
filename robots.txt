@@ -1,4 +1,4 @@
 User-agent: *
 Disallow: /admin.html
 Disallow: /api/
-Sitemap: https://takekash.netlify.app/sitemap.xml
+Sitemap: https://site-production-000380c0.up.railway.app/sitemap.xml

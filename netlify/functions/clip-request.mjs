@@ -12,7 +12,7 @@ export function confirmToken(id) {
   return crypto.createHmac("sha256", key).update(String(id)).digest("base64url").slice(0, 32);
 }
 
-const ORIGINS = new Set(["https://takekash.com", "https://www.takekash.com", "https://takekash.netlify.app"]);
+const ORIGINS = new Set(["https://takekash.com", "https://www.takekash.com", "https://takekash.netlify.app", ...(process.env.SITE_ORIGINS || "").split(",").map((s) => s.trim()).filter(Boolean)]);
 const cors = (req) => { const o = req.headers.get("origin"); return ORIGINS.has(o) ? { "Access-Control-Allow-Origin": o, "Access-Control-Allow-Headers": "Content-Type", Vary: "Origin" } : {}; };
 const json = (req, status, body) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...cors(req) } });
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -52,7 +52,7 @@ export default async (req, context) => {
   const id = crypto.randomBytes(10).toString("hex");
   await funnel.track(getStore("funnel"), "clip_request");
   await store.setJSON(`req:${id}`, { id, url, email, at: new Date().toISOString(), status: "awaiting_confirm" });
-  const origin = ORIGINS.has(req.headers.get("origin")) ? req.headers.get("origin") : "https://takekash.netlify.app";
+  const origin = ORIGINS.has(req.headers.get("origin")) ? req.headers.get("origin") : (process.env.SITE_URL || "https://takekash.netlify.app");
   let link;
   try { link = `${origin}/confirm?id=${id}&t=${confirmToken(id)}`; }
   catch (e) { console.error(e); return json(req, 503, { error: "Requests are paused for a moment." }); }

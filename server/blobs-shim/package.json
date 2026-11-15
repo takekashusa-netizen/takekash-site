@@ -1,0 +1,1 @@
+{ "name": "@netlify/blobs", "version": "0.0.0-railway-shim", "main": "index.cjs", "exports": { ".": { "import": "./index.mjs", "require": "./index.cjs" } } }

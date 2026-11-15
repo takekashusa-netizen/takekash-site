@@ -18,6 +18,7 @@ const ALLOWED_ORIGINS = new Set([
   "https://takekash.netlify.app",
   "https://takekash.com",
   "https://www.takekash.com",
+  ...(process.env.SITE_ORIGINS || "").split(",").map((s) => s.trim()).filter(Boolean),
 ]);
 
 const { connectLambda, getStore } = require("@netlify/blobs");

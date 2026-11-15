@@ -4,7 +4,7 @@ import { getStore } from "@netlify/blobs";
 import access from "../../lib/seo/access.cjs";
 import funnel from "../../lib/seo/funnel.cjs";
 
-const ORIGINS = new Set(["https://takekash.com", "https://www.takekash.com", "https://takekash.netlify.app"]);
+const ORIGINS = new Set(["https://takekash.com", "https://www.takekash.com", "https://takekash.netlify.app", ...(process.env.SITE_ORIGINS || "").split(",").map((s) => s.trim()).filter(Boolean)]);
 const cors = (req) => {
   const o = req.headers.get("origin");
   return ORIGINS.has(o) ? { "Access-Control-Allow-Origin": o, "Access-Control-Allow-Headers": "Content-Type", "Access-Control-Allow-Methods": "POST, OPTIONS", Vary: "Origin" } : {};

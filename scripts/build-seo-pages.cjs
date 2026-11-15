@@ -2,7 +2,7 @@
 // Run after editing TOPICS or the engine:  node scripts/build-seo-pages.cjs
 const fs = require("fs"), path = require("path");
 const E = require("../lib/seo/engine.cjs");
-const SITE = process.env.SITE_URL || "https://takekash.netlify.app"; // switch to the final domain when it serves this site
+const SITE = process.env.SITE_URL || "https://site-production-000380c0.up.railway.app"; // switch to the final domain when it serves this site
 const YEAR = new Date().getFullYear();
 const ROOT = path.join(__dirname, "..");
 
