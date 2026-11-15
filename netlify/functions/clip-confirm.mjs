@@ -1,0 +1,75 @@
+// POST /api/clip-confirm {id, t}  — customer clicked "Start my clips" from their email.
+// Checks the allowance, signs a job ticket, and hands it to the Railway clip engine.
+import { getStore } from "@netlify/blobs";
+import crypto from "crypto";
+import funnel from "../../lib/seo/funnel.cjs";
+import D from "../../lib/seo/delivery.cjs";
+import { confirmToken } from "./clip-request.mjs";
+
+const ORIGINS = new Set(["https://takekash.com", "https://www.takekash.com", "https://takekash.netlify.app"]);
+const cors = (req) => { const o = req.headers.get("origin"); return ORIGINS.has(o) ? { "Access-Control-Allow-Origin": o, "Access-Control-Allow-Headers": "Content-Type", Vary: "Origin" } : {}; };
+const json = (req, s, b) => new Response(JSON.stringify(b), { status: s, headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...cors(req) } });
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const MESSAGES = {
+  processing: "You're confirmed. Your clips are being made now; we'll email you a download link when they're ready.",
+  delivered: "These clips were already delivered. Check your email for the download link.",
+  manual: "You're confirmed. We're making these clips by hand and will email them to you.",
+  failed: "We couldn't make clips from that stream. Your clip allowance was refunded.",
+};
+
+async function sendEmail(env, to, subject, html) {
+  const r = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ from: env.FROM_EMAIL, to, subject, html, reply_to: env.REPLY_TO || env.OWNER_EMAIL }) });
+  if (!r.ok) throw new Error(`Resend ${r.status}`);
+}
+
+export default async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(req) });
+  if (req.method !== "POST") return json(req, 405, { error: "Method not allowed" });
+  let id, t;
+  try { ({ id, t } = await req.json()); } catch { return json(req, 400, { error: "Invalid request." }); }
+  if (!/^[a-f0-9]{20}$/.test(String(id || "")) || typeof t !== "string") return json(req, 400, { error: "This link isn't valid." });
+  const want = confirmToken(id);
+  if (t.length !== want.length || !crypto.timingSafeEqual(Buffer.from(t), Buffer.from(want))) return json(req, 403, { error: "This link isn't valid." });
+
+  const env = process.env, store = getStore("clip-requests");
+  const r = await store.get(`req:${id}`, { type: "json" });
+  if (!r) return json(req, 404, { error: "We couldn't find that request." });
+  if (r.status !== "awaiting_confirm") return json(req, 200, { ok: true, status: r.status, message: MESSAGES[r.status] || "Already confirmed." });
+  if (Date.now() - Date.parse(r.at) > 48 * 3600e3) return json(req, 410, { error: "This link expired. Send your stream again from the homepage." });
+
+  // one-time claim key (create-only): two simultaneous clicks can't both start a job
+  const claim = await store.set(`claim:${id}`, new Date().toISOString(), { onlyIfNew: true });
+  if (claim && claim.modified === false) return json(req, 200, { ok: true, status: "processing", message: MESSAGES.processing });
+  r.status = "confirming"; await store.setJSON(`req:${id}`, r);
+
+  const plan = await D.planFor(getStore("seo-access"), r.email);
+  const quota = getStore("clip-quota");
+  const res = await D.reserve(quota, r.email, plan, id);
+  if (!res.clips) {
+    r.status = "awaiting_confirm"; await store.setJSON(`req:${id}`, r); await store.delete(`claim:${id}`);
+    return json(req, 402, { error: plan === "free" ? "You've used your 3 free clips. Pick a plan to keep going." : "You've used this month's clips. Upgrade to Pro for more.", upgrade: true });
+  }
+  Object.assign(r, { plan, reserved: res.clips, slots: res.slots, month: res.month, confirmedAt: new Date().toISOString() });
+  await funnel.track(getStore("funnel"), "clip_confirmed");
+
+  let sent = false;
+  try {
+    const { privateKey } = await D.siteKey(getStore("keys"));
+    const ticket = D.makeTicket(privateKey, { jid: id, url: r.url, clips: res.clips });
+    const resp = await fetch(`${D.API_BASE}/api/customer-jobs`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(ticket), signal: AbortSignal.timeout(15000) });
+    sent = resp.status === 202;
+    if (!sent) console.error("railway refused job", resp.status, await resp.text().catch(() => ""));
+  } catch (e) { console.error("railway submit failed", e); }
+
+  r.status = sent ? "processing" : "manual";
+  if (!sent) { await D.refund(quota, res.slots); r.reserved = 0; r.slots = []; }
+  await store.setJSON(`req:${id}`, r);
+  try {
+    await sendEmail(env, env.OWNER_EMAIL, sent ? `Clip job started (${plan}): ${new URL(r.url).hostname}` : `ACTION NEEDED: clip request to make by hand`,
+      `<p>${sent ? "Automatic job started" : "The clip engine didn't accept this job; please make it by hand."}</p><p>Stream: <a href="${esc(r.url)}">${esc(r.url)}</a><br>Customer: ${esc(r.email)} (${plan}, ${res.clips} clips)<br>Request: ${id}</p>`);
+  } catch (e) { console.error("owner email failed", e); }
+  return json(req, 200, { ok: true, status: r.status, clips: res.clips, message: MESSAGES[r.status] });
+};
+
+export const config = { path: "/api/clip-confirm" };

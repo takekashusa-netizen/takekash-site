@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Confirm your clips | TakeKash</title><meta name="robots" content="noindex">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0d0c;--panel:#131715;--panel2:#1a1f1c;--line:#26302b;--ink:#eef3ef;--mute:#93a39a;--kash:#2fe07c;--kash2:#1fb862;--warn:#f5b83d;--bad:#ff6b6b;--r:14px}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif;-webkit-text-size-adjust:100%}
+a{color:var(--kash)}
+.wrap{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+header.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.logo{font:700 20px 'Space Grotesk',sans-serif;letter-spacing:-.02em;color:var(--ink);text-decoration:none}.logo b{color:var(--kash)}
+.pill{font-size:12px;color:var(--mute);border:1px solid var(--line);padding:4px 10px;border-radius:99px}
+h1{font:700 clamp(28px,6vw,44px)/1.08 'Space Grotesk',sans-serif;letter-spacing:-.03em;margin:8px 0 10px}
+h1 em{font-style:normal;color:var(--kash)}
+.lede{color:var(--mute);max-width:640px;margin:0 0 22px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+label{display:block;font-size:12px;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;margin:0 0 6px}
+input,select,textarea{width:100%;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px;font:inherit;font-size:16px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--kash);outline-offset:-1px;border-color:transparent}
+.grid{display:grid;gap:14px}.g2{grid-template-columns:1fr 1fr}
+@media(max-width:640px){.g2{grid-template-columns:1fr}}
+.plats{display:flex;flex-wrap:wrap;gap:8px}
+.plats button{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:99px;padding:8px 14px;font:500 14px Inter,sans-serif;cursor:pointer}
+.plats button[aria-pressed=true]{background:var(--kash);color:#04210f;border-color:var(--kash)}
+.go{display:flex;gap:10px;margin-top:4px}
+.btn{background:var(--kash);color:#04210f;border:0;border-radius:10px;padding:13px 18px;font:700 15px 'Space Grotesk',sans-serif;cursor:pointer;flex:1}
+.btn:active{transform:translateY(1px)}.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);flex:0 0 auto}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 10px;color:var(--mute);font-size:13px}
+.meta-row span{background:var(--panel);border:1px solid var(--line);padding:4px 10px;border-radius:99px}.meta-row b{color:var(--ink);font-weight:600}
+.results{display:grid;gap:14px}
+.pcard h2{font:700 18px 'Space Grotesk',sans-serif;margin:0 0 12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sec{margin-top:14px}.sec:first-of-type{margin-top:0}
+.sec h3{font-size:12px;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;margin:0 0 8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.title-row{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:10px 12px;margin-bottom:6px;font:inherit;cursor:pointer}
+.title-row:hover{border-color:var(--kash2)}.title-row .t{flex:1}
+.len{font:600 11px Inter,sans-serif;padding:2px 7px;border-radius:99px;background:#183b26;color:var(--kash);white-space:nowrap}
+.len.long{background:#3b2f12;color:var(--warn)}
+textarea{min-height:120px;resize:vertical;font-size:14px;line-height:1.45}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:5px 9px;font-size:13px;cursor:pointer;user-select:none}
+.chip.off{opacity:.38;text-decoration:line-through}
+.copy{background:transparent;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:5px 10px;font:600 12px Inter,sans-serif;cursor:pointer;text-transform:none;letter-spacing:0;white-space:nowrap}
+.copy.ok{border-color:var(--kash);color:var(--kash)}
+.meter{height:6px;background:var(--panel2);border-radius:99px;overflow:hidden;margin-top:8px}.meter i{display:block;height:100%;background:var(--kash)}
+.note{font-size:12px;color:var(--mute);margin-top:6px}
+.tiers .tier{margin-top:12px}.tier h3 small{font-weight:500;text-transform:none;letter-spacing:0;color:var(--mute)}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:6px 10px;font-size:14px}.kv dt{color:var(--mute)}.kv dd{margin:0;word-break:break-word}
+.faq{margin-top:34px}.faq h2{font:700 22px 'Space Grotesk',sans-serif}.faq details{border-top:1px solid var(--line);padding:12px 0}.faq summary{cursor:pointer;font-weight:600}.faq p{color:var(--mute);margin:8px 0 0}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(80px);background:var(--kash);color:#04210f;font-weight:700;padding:10px 16px;border-radius:99px;transition:.25s;z-index:9}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.access{display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:14px}
+.access .who{font-size:14px}.access .who b{color:var(--kash)}
+.access .acts{display:flex;gap:8px;flex-wrap:wrap}
+.mini{background:var(--kash);color:#04210f;border:0;border-radius:9px;padding:9px 13px;font:700 13px 'Space Grotesk',sans-serif;cursor:pointer}
+.mini.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.signin{display:none;gap:8px;width:100%}.signin.show{display:flex}.signin input{flex:1;padding:10px}
+.msg{width:100%;font-size:13px;color:var(--mute)}.msg.err{color:var(--bad)}
+.upsell{border-color:var(--kash2);background:linear-gradient(180deg,#132219,var(--panel))}
+.upsell h2{font:700 20px 'Space Grotesk',sans-serif;margin:0 0 8px}.upsell ul{margin:0 0 14px;padding-left:18px;color:var(--mute)}
+.plats button.lock::after{content:' 🔒'}
+.empty{color:var(--mute);text-align:center;padding:26px 10px}
+footer{color:var(--mute);font-size:12px;margin-top:30px;border-top:1px solid var(--line);padding-top:14px}
+</style></head><body><div class="wrap" style="max-width:560px">
+<header class="top"><a class="logo" href="/">Take<b>Kash</b></a></header>
+<section class="card" style="text-align:center;padding:28px 18px">
+  <h1 style="font-size:28px">Start your clips?</h1>
+  <p class="lede" id="msg" style="margin:0 auto 18px">Tap below and we'll start finding the best moments in your stream.</p>
+  <button class="btn" id="go" type="button" style="width:100%">Start my clips</button>
+  <div id="extra" style="margin-top:14px"></div>
+</section></div>
+<script>
+(function(){
+  var q=new URLSearchParams(location.search),id=q.get('id'),t=q.get('t'),btn=document.getElementById('go'),msg=document.getElementById('msg');
+  if(!id||!t){msg.textContent='This link is incomplete. Open it straight from your email.';btn.hidden=true;return;}
+  try{history.replaceState(null,'',location.pathname);}catch(e){}
+  btn.onclick=function(){ // a real click: link-preview bots that pre-open emails can't start a job
+    btn.disabled=true;btn.textContent='Starting...';
+    fetch('/api/clip-confirm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,t:t})})
+      .then(function(r){return r.json().then(function(d){return {s:r.status,d:d};});})
+      .then(function(x){
+        msg.textContent=x.d.message||x.d.error||'Something went wrong.';btn.hidden=true;
+        if(x.d.upgrade)document.getElementById('extra').innerHTML='<a class="btn" style="display:block;text-decoration:none" href="/#get-clips" onclick="location.href=\'/\';return false;">See plans</a>';
+        else if(x.s===200)document.getElementById('extra').innerHTML='<a href="/seo" style="color:var(--kash)">While you wait: get titles and tags in SEO Studio →</a>';
+      }).catch(function(){msg.textContent='Network error. Try again.';btn.disabled=false;btn.textContent='Start my clips';});
+  };
+})();
+</script></body></html>

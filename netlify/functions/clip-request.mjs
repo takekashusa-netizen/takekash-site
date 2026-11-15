@@ -4,6 +4,14 @@ import { getStore } from "@netlify/blobs";
 import crypto from "crypto";
 import funnel from "../../lib/seo/funnel.cjs";
 
+// HMAC of the request id with the site's existing signing secret: proves the click came from the emailed link.
+export function confirmToken(id) {
+  const base = process.env.SEO_TOKEN_SECRET || process.env.STRIPE_WEBHOOK_SECRET;
+  if (!base) throw new Error("no signing secret configured");   // never fall back to a guessable key
+  const key = crypto.createHmac("sha256", base).update("clip-confirm-v1").digest();
+  return crypto.createHmac("sha256", key).update(String(id)).digest("base64url").slice(0, 32);
+}
+
 const ORIGINS = new Set(["https://takekash.com", "https://www.takekash.com", "https://takekash.netlify.app"]);
 const cors = (req) => { const o = req.headers.get("origin"); return ORIGINS.has(o) ? { "Access-Control-Allow-Origin": o, "Access-Control-Allow-Headers": "Content-Type", Vary: "Origin" } : {}; };
 const json = (req, status, body) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...cors(req) } });
@@ -38,23 +46,25 @@ export default async (req, context) => {
   if (rl.n >= 3) return json(req, 429, { error: "You've sent 3 requests today. We'll get to them first." });
   rl.n += 1; await store.setJSON(ipKey, rl);
 
-  const id = `${new Date().toISOString().slice(0, 10)}-${crypto.randomBytes(4).toString("hex")}`;
+  // Nothing runs until the customer confirms from their own inbox (stops spam to other people's
+  // emails and anyone burning someone else's free clips). The link opens a page; a button click
+  // does the POST, so email scanners that pre-open links can't start a job.
+  const id = crypto.randomBytes(10).toString("hex");
   await funnel.track(getStore("funnel"), "clip_request");
-  await store.setJSON(`req:${id}`, { id, url, email, at: new Date().toISOString(), status: "new" });
-
+  await store.setJSON(`req:${id}`, { id, url, email, at: new Date().toISOString(), status: "awaiting_confirm" });
+  const origin = ORIGINS.has(req.headers.get("origin")) ? req.headers.get("origin") : "https://takekash.netlify.app";
+  let link;
+  try { link = `${origin}/confirm?id=${id}&t=${confirmToken(id)}`; }
+  catch (e) { console.error(e); return json(req, 503, { error: "Requests are paused for a moment." }); }
   try {
-    await sendEmail(env, env.OWNER_EMAIL, `New clip request: ${host}`,
-      `<p><b>New clip request</b> (${esc(id)})</p><p>Stream: <a href="${esc(url)}">${esc(url)}</a><br>Customer: ${esc(email)}</p><p>Reply to this email to reach the customer.</p>`, email);
-  } catch (e) {
-    console.error("owner email failed", e);
-    return json(req, 502, { error: "We couldn't send your request right now." });
-  }
-  try {
-    await sendEmail(env, email, "We got your stream — clips are on the way",
-      `<p>Thanks! We received your stream:</p><p><a href="${esc(url)}">${esc(url)}</a></p><p>We'll pull the best moments, cut out the dead time, and email your vertical clips with captions, titles and hashtags. Most streams come back the same day.</p><p>Questions? Just reply to this email.</p><p>— TakeKash</p>`,
+    await sendEmail(env, email, "Confirm your clips from TakeKash",
+      `<p>Tap to start your clips from:</p><p><a href="${esc(url)}">${esc(url)}</a></p><p><a href="${link}"><b>Confirm and start my clips →</b></a></p><p>Didn't request this? Ignore this email and nothing happens.</p><p>— TakeKash</p>`,
       env.REPLY_TO || env.OWNER_EMAIL);
-  } catch (e) { console.error("customer confirmation failed", e); }
-  return json(req, 200, { ok: true, id, message: "Got it! Check your email for a confirmation. Your clips will follow." });
+  } catch (e) {
+    console.error("confirm email failed", e);
+    return json(req, 502, { error: "We couldn't email you right now." });
+  }
+  return json(req, 200, { ok: true, message: "Check your email and tap Confirm to start your clips." });
 };
 
 export const config = { path: "/api/clip-request" };

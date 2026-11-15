@@ -101,7 +101,7 @@ exports.handler = async (event) => {
   if (s.metadata && s.metadata.product === "takekash") {
     const who = (s.customer_details && s.customer_details.email) || "(no email)";
     // Unlock SEO Studio for this buyer. Fail with 500 so Stripe retries rather than leave a paid customer locked out.
-    try { if (s.customer_details && s.customer_details.email) await seoAccess.grant(seoStore, s.customer_details.email, s.subscription); await funnel.track(getStore("funnel"), "purchase"); }
+    try { if (s.customer_details && s.customer_details.email) await seoAccess.grant(seoStore, s.customer_details.email, s.subscription, Date.now(), (s.amount_total || 0) >= 4900 ? "pro" : "creator"); await funnel.track(getStore("funnel"), "purchase"); }
     catch (err) { console.error("SEO access grant failed:", err); return { statusCode: 500, body: "access grant failed" }; }
     const amt = typeof s.amount_total === "number" ? `$${(s.amount_total / 100).toFixed(2)}` : "";
     try {
