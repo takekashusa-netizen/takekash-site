@@ -61,7 +61,7 @@ function page([slug, name, topic, cat]) {
 <meta property="og:type" content="article"><meta property="og:site_name" content="TakeKash"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${url}">
 <meta name="twitter:card" content="summary"><script type="application/ld+json">${JSON.stringify(ld)}</script>
 ${FONTS}${CSS}${extraCss}</head><body><div class="wrap">
-<header class="top"><a class="logo" href="/">Take<b>Kash</b></a><a class="pill" href="/seo" style="text-decoration:none">SEO Studio</a></header>
+<header class="top"><a class="logo" href="/">Take<b>Kash</b></a><span style="display:flex;gap:8px"><a class="pill" href="/seo" style="text-decoration:none">SEO Studio</a><a class="pill" href="/#get-clips" style="text-decoration:none;color:var(--kash);border-color:var(--kash2)">Get my clips</a></span></header>
 <nav class="crumbs"><a href="/seo">SEO Studio</a> › ${esc(name)}</nav>
 <h1>${esc(name)} <em>tags, hashtags</em> &amp; titles for ${YEAR}</h1>
 <p class="lede">Ready-to-use ${esc(name)} tags and title ideas, built for how YouTube, TikTok, Instagram and Twitch rank content right now. Copy the starter set below, or generate a set tailored to your exact video.</p>
