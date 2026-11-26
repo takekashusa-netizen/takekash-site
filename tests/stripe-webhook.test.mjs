@@ -1,0 +1,23 @@
+// node tests/stripe-webhook.test.mjs — webhook verifies Stripe's signature and emails through the site mail layer
+import { BlobsServer } from "@netlify/blobs/server";
+import { setEnvironmentContext } from "@netlify/blobs";
+import crypto from "crypto"; import fs from "fs"; import os from "os"; import path from "path"; import { createRequire } from "module";
+let pass = 0; const ok = (c, m) => { if (!c) { console.error("FAIL:", m); process.exit(1); } pass++; console.log("ok -", m); };
+const srv = new BlobsServer({ directory: fs.mkdtempSync(path.join(os.tmpdir(), "wh-")), token: "t", port: 0 }); const { port } = await srv.start();
+setEnvironmentContext({ siteID: "s", token: "t", edgeURL: `http://localhost:${port}` });
+Object.assign(process.env, { STRIPE_WEBHOOK_SECRET: "whsec_test", MAIL_PROVIDER: "log", SITE_URL: "https://site.example" });
+delete process.env.RESEND_API_KEY;
+const require = createRequire(import.meta.url);
+const wh = require("../netlify/functions/stripe-webhook.js");
+const send = (obj, secret = "whsec_test") => { const body = JSON.stringify(obj), t = Math.floor(Date.now() / 1000);
+  const sig = crypto.createHmac("sha256", secret).update(`${t}.${body}`).digest("hex");
+  return wh.handler({ httpMethod: "POST", body, headers: { "stripe-signature": `t=${t},v1=${sig}`, "x-nf-site-id": "s", "x-nf-deploy-id": "d" }, blobs: Buffer.from(JSON.stringify({ url: `http://localhost:${port}`, token: "t" })).toString("base64") }); };
+ok((await send({ type: "x" }, "whsec_wrong")).statusCode === 400, "bad signature rejected");
+globalThis.__mailLog = [];
+const r = await send({ type: "checkout.session.completed", data: { object: { id: "cs_test_1", payment_status: "paid", amount_total: 2700, metadata: { product: "ebook", sku: "legal" }, customer_details: { email: "b@x.com" } } } });
+ok(r.statusCode === 200, "ebook sale handled without a Resend key");
+const log = globalThis.__mailLog;
+ok(log.some((m) => m.to === "b@x.com" && /download/i.test(m.subject)), "buyer gets download email through the mail layer");
+ok(log.some((m) => m.to === "takekashusa@gmail.com" && /Ebook sale/.test(m.subject)), "owner alert goes to the owner email by default");
+ok(!log.some((m) => /railway\.app/.test(m.html)), "no links to the old Railway site");
+console.log(`stripe-webhook: ${pass} passed`); await srv.stop(); process.exit(0);

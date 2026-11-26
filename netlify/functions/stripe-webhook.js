@@ -6,8 +6,7 @@
 //
 // Netlify → Site configuration → Environment variables:
 //   STRIPE_WEBHOOK_SECRET   whsec_... from the Stripe webhook endpoint
-//   RESEND_API_KEY          from resend.com
-//   FROM_EMAIL              e.g. "EditFlow <hello@yourdomain.com>" (domain verified in Resend)
+//   (email goes through lib/mail.cjs: the Gmail sender outbox; no Resend key needed)
 //   OWNER_EMAIL             where YOU get the "new customer" alert
 //   REPLY_TO                (optional) where buyer replies go; defaults to OWNER_EMAIL
 //   APP_ACCESS_URL          (optional) link to the app; also derives the Starter Pack link (<url>/starter-pack/). If unset, the buyer is told access follows personally
@@ -53,13 +52,10 @@ function verifyStripeSignature(rawBody, header, secret) {
 const esc = (s) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
+// One mail layer for the whole site (Gmail sender / outbox); owner alerts go to the owner email even without OWNER_EMAIL set.
+const mail = require("../../lib/mail.cjs");
 async function sendEmail({ to, subject, html, replyTo }) {
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: process.env.FROM_EMAIL, to, subject, html, ...(replyTo ? { reply_to: replyTo } : {}) }),
-  });
-  if (!res.ok) throw new Error(`Resend ${res.status}: ${await res.text()}`);
+  await mail.send(process.env, { to: to || seoAccess.ownerEmail(process.env), subject, html, replyTo: replyTo || undefined });
 }
 
 exports.handler = async (event) => {
