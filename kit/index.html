@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Upload Kit: Thumbnail, Title &amp; Tags in One Step | TakeKash</title>
 <meta name="description" content="Drop a clip. Get the strongest frame as a thumbnail with your title on it, plus titles, descriptions and tags for YouTube, TikTok and Instagram.">
-<link rel="canonical" href="https://site-production-000380c0.up.railway.app/kit">
+<link rel="canonical" href="https://takekash.com/kit">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=Anton&display=swap" rel="stylesheet">
 <style>
@@ -116,7 +116,7 @@ a.dl{display:block;text-align:center;text-decoration:none}
 <script>
 (function(){
   var $=function(i){return document.getElementById(i);}; $('yr').textContent=new Date().getFullYear();
-  var API=/(^|\.)takekash\.com$/.test(location.hostname)?'https://site-production-000380c0.up.railway.app':'';
+  var API='';
   var state={frames:[],sel:0,size:'16:9',title:''};
   try{fetch(API+'/api/track',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({event:'page_kit'}),keepalive:true}).catch(function(){});}catch(e){}
   function token(){try{return localStorage.getItem('tkseo_token');}catch(e){return null;}}

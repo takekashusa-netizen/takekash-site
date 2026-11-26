@@ -1,6 +1,7 @@
 // POST /api/clip-job-done  — signed callback from the clip engine (GitHub Actions HMAC, or legacy Railway Ed25519).
 // Verified against Railway's Ed25519 public key (pinned in Blobs on first fetch).
 import { getStore } from "@netlify/blobs";
+import access from "../../lib/seo/access.cjs";
 import T from "../../lib/timeline.cjs";
 import mail from "../../lib/mail.cjs";
 import funnel from "../../lib/seo/funnel.cjs";
@@ -46,7 +47,7 @@ export default async (req) => {
     } else {
       await sendEmail(env, r.email, "We couldn't make clips from that stream",
         `<p>We couldn't find clip-worthy moments in <a href="${esc(r.url)}">this stream</a>, or it couldn't be downloaded. Nothing was taken from your clip allowance.</p><p>Reply to this email and we'll take a look by hand.</p><p>— TakeKash</p>`);
-      await sendEmail(env, env.OWNER_EMAIL, "Clip job failed", `<p>Request ${esc(p.jid)} for ${esc(r.email)} failed. Stream: ${esc(r.url)}</p>`);
+      await sendEmail(env, access.ownerEmail(env), "Clip job failed", `<p>Request ${esc(p.jid)} for ${esc(r.email)} failed. Stream: ${esc(r.url)}</p>`);
     }
   } catch (e) { console.error("delivery email failed", e); return json(500, { error: "email failed" }); }   // 500 => engine retries
   const after = await store.get(`req:${p.jid}`, { type: "json" });

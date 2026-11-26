@@ -76,7 +76,7 @@ export default async (req) => {
   if (!sent) { await D.refund(quota, res.slots); r.reserved = 0; r.slots = []; }
   await store.setJSON(`req:${id}`, r);
   try {
-    await sendEmail(env, env.OWNER_EMAIL, sent ? `Clip job started (${plan}): ${new URL(r.url).hostname}` : `ACTION NEEDED: clip request to make by hand`,
+    await sendEmail(env, access.ownerEmail(env), sent ? `Clip job started (${plan}): ${new URL(r.url).hostname}` : `ACTION NEEDED: clip request to make by hand`,
       `<p>${sent ? "Automatic job started" : "The clip engine didn't accept this job; please make it by hand."}</p><p>Stream: <a href="${esc(r.url)}">${esc(r.url)}</a><br>Customer: ${esc(r.email)} (${plan}, ${res.clips} clips)<br>Request: ${id}</p>`);
   } catch (e) { console.error("owner email failed", e); }
   return json(req, 200, { ok: true, status: r.status, clips: res.clips, message: MESSAGES[r.status] });
