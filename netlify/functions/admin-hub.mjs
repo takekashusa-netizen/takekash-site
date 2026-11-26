@@ -71,6 +71,7 @@ async function overview() {
       .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt))),
     leadStages: crm.STAGES,
     runs: await engineRuns(),
+    health: await getStore("health").get("health:last", { type: "json" }),
     orders: (await crm.listAll(getStore("orders"), "order:", 1000)).map(({ _key, key, ...o }) => ({ ...o, sid: undefined, ref: String(o.sid || "").slice(-10) }))
       .sort((a, b) => String(b.paidAt).localeCompare(String(a.paidAt))),
     social: { posts: await social.list(getStore("social")), platforms: social.PLATFORMS, limits: social.LIMITS },
