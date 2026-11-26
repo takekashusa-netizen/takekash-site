@@ -1,0 +1,25 @@
+// node tests/analytics.test.mjs — free YouTube feed stats: parsing, daily snapshots, growth
+import { BlobsServer } from "@netlify/blobs/server";
+import { setEnvironmentContext, getStore } from "@netlify/blobs";
+import fs from "fs"; import os from "os"; import path from "path";
+let pass = 0; const ok = (c, m) => { if (!c) { console.error("FAIL:", m); process.exit(1); } pass++; console.log("ok -", m); };
+const srv = new BlobsServer({ directory: fs.mkdtempSync(path.join(os.tmpdir(), "an-")), token: "t", port: 0 }); const { port } = await srv.start();
+setEnvironmentContext({ siteID: "s", token: "t", edgeURL: `http://localhost:${port}` });
+const A = (await import("../lib/analytics.cjs")).default;
+const entry = (id, t, v, shorts = false) => `<entry><yt:videoId>${id}</yt:videoId><title>${t}</title><link rel="alternate" href="https://www.youtube.com/${shorts ? "shorts/" : "watch?v="}${id}"/><published>2026-11-15T00:00:00+00:00</published><media:community><media:starRating count="2" average="5.00" min="1" max="5"/><media:statistics views="${v}"/></media:community></entry>`;
+const feed = (v) => `<feed><title>x</title>${entry("faHX6JQ3LKo", "Clip &amp; more", v, true)}${entry("YmAv7cHneDk", "MW4", 6)}</feed>`;
+const vids = A.parseFeed(feed(4));
+ok(vids.length === 2 && vids[0].title === "Clip & more" && vids[0].views === 4 && vids[0].short && vids[0].likes === 2, "feed parsed: title, views, likes, shorts");
+const store = getStore("analytics"), day = 864e5, t0 = new Date("2026-11-20T12:00:00Z");
+let views = 4;
+const fake = async () => new Response(feed(views));
+await A.snapshot(store, fake, new Date(+t0 - 7 * day));
+views = 30; await A.snapshot(store, fake, new Date(+t0 - day));
+views = 50; const r = await A.snapshot(store, fake, t0);
+ok(r.every((x) => x.videos === 2), "all channels snapshotted");
+const rep = await A.report(store, t0);
+ok(rep[0].gained1d === 20 && rep[0].gained7d === 46, "growth over 1 and 7 days");
+ok(rep[0].top[0].views === 50 && rep[0].recentViews === 56, "top videos and recent total");
+const bad = await A.snapshot(store, async () => new Response("nope", { status: 500 }), t0);
+ok(bad.every((x) => x.error), "a failed feed is reported, not thrown");
+console.log(`analytics: ${pass} passed`); await srv.stop(); process.exit(0);

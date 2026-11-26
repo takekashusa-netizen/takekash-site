@@ -11,6 +11,7 @@ import D from "../../lib/seo/delivery.cjs";
 import T from "../../lib/timeline.cjs";
 import crm from "../../lib/crm.cjs";
 import social from "../../lib/social.cjs";
+import analytics from "../../lib/analytics.cjs";
 const esc = (x) => String(x).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 const json = (s, b) => new Response(JSON.stringify(b), { status: s, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
@@ -71,6 +72,7 @@ async function overview() {
       .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt))),
     leadStages: crm.STAGES,
     runs: await engineRuns(),
+    stats: await analytics.report(getStore("analytics")),
     health: await getStore("health").get("health:last", { type: "json" }),
     orders: (await crm.listAll(getStore("orders"), "order:", 1000)).map(({ _key, key, ...o }) => ({ ...o, sid: undefined, ref: String(o.sid || "").slice(-10) }))
       .sort((a, b) => String(b.paidAt).localeCompare(String(a.paidAt))),
@@ -124,6 +126,7 @@ async function act(b) {
       c.status = b.action === "closeChat" ? "closed" : "open"; c.unread = 0; await s.setJSON(`conv:${c.id}`, c); return { ok: true };
     }
     case "saveContact": return { ok: true, contact: await crm.saveContact(getStore("crm"), b.email, b) };
+    case "statsNow": return { ok: true, result: await analytics.snapshot(getStore("analytics")) };
     case "importLeads": return { ok: true, ...(await crm.importLeads(getStore("crm"), b.leads, b.source || "import")) };
     case "leadStage": return { ok: true, lead: await crm.setLeadStage(getStore("crm"), b.email, b.stage) };
     case "savePost": return { ok: true, ...(await social.upsert(getStore("social"), b.post || {})) };
