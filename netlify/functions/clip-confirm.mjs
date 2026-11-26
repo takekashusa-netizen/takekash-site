@@ -56,10 +56,17 @@ export default async (req) => {
   let sent = false;
   try {
     const { privateKey } = await D.siteKey(getStore("keys"));
-    const ticket = D.makeTicket(privateKey, { jid: id, url: r.url, clips: res.clips });
-    const resp = await fetch(`${D.API_BASE}/api/customer-jobs`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(ticket), signal: AbortSignal.timeout(15000) });
-    sent = resp.status === 202;
-    if (!sent) console.error("railway refused job", resp.status, await resp.text().catch(() => ""));
+    if (D.useGithubEngine()) {
+      r.cbk = D.newCallbackKey(); await store.setJSON(`req:${id}`, r);   // stored before dispatch so the callback can be verified
+      const ticket = D.makeTicket(privateKey, { jid: id, url: r.url, clips: res.clips, cbk: r.cbk });
+      sent = await D.dispatchJob(ticket);
+      if (!sent) console.error("github engine dispatch refused");
+    } else {
+      const ticket = D.makeTicket(privateKey, { jid: id, url: r.url, clips: res.clips });
+      const resp = await fetch(`${D.API_BASE}/api/customer-jobs`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(ticket), signal: AbortSignal.timeout(15000) });
+      sent = resp.status === 202;
+      if (!sent) console.error("railway refused job", resp.status, await resp.text().catch(() => ""));
+    }
   } catch (e) { console.error("railway submit failed", e); }
 
   r.status = sent ? "processing" : "manual";
