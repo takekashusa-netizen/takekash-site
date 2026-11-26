@@ -8,6 +8,7 @@ const json = (req, s, b) => new Response(JSON.stringify(b), { status: s, headers
 const PUBLIC = new Set(["unlock_click", "kit_made", "page_seo", "page_kit", "page_home", "page_ebooks"]);
 
 export default async (req) => {
+  await access.ensureSigningSecret(getStore("keys"));
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(req) });
   const store = getStore("funnel");
   if (req.method === "POST") {

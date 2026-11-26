@@ -38,6 +38,7 @@ function addSearched(out, searched) {
 }
 
 export default async (req, context) => {
+  await access.ensureSigningSecret(getStore("keys"));
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(req) });
   if (req.method !== "POST") return json(req, 405, { error: "Method not allowed" });
 

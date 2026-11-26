@@ -1,6 +1,7 @@
 import type { Context, Config } from "@netlify/functions";
 import snapshot from "./snapshot.json";
 import access from "../../../lib/seo/access.cjs";
+import { getStore } from "@netlify/blobs";
 
 // Admin-only data endpoint for takekash.com/admin.html.
 // Owner-only: requires the owner's signed sign-in token (see lib/seo/access.cjs). The snapshot data
@@ -9,6 +10,7 @@ import access from "../../../lib/seo/access.cjs";
 // ADMIN-SETUP.txt for how to refresh it.
 
 export default async (req: Request, context: Context) => {
+  await access.ensureSigningSecret(getStore("keys"));
   // Owner sign-in only (OWNER_EMAIL via the emailed, signed link). The old shared
   // ADMIN_KEY is no longer accepted: its value was committed to this public repo.
   const auth = req.headers.get("authorization") || "";

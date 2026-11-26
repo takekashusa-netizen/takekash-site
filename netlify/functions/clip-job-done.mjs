@@ -1,16 +1,13 @@
 // POST /api/clip-job-done  — signed callback from the clip engine (GitHub Actions HMAC, or legacy Railway Ed25519).
 // Verified against Railway's Ed25519 public key (pinned in Blobs on first fetch).
 import { getStore } from "@netlify/blobs";
+import mail from "../../lib/mail.cjs";
 import funnel from "../../lib/seo/funnel.cjs";
 import D from "../../lib/seo/delivery.cjs";
 
 const json = (s, b) => new Response(JSON.stringify(b), { status: s, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-async function sendEmail(env, to, subject, html) {
-  const r = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: env.FROM_EMAIL, to, subject, html, reply_to: env.REPLY_TO || env.OWNER_EMAIL }) });
-  if (!r.ok) throw new Error(`Resend ${r.status}`);
-}
+const sendEmail = (env, to, subject, html) => mail.send(env, { to, subject, html });   // one mail layer: own relay | Resend | log
 
 export default async (req) => {
   if (req.method !== "POST") return json(405, { error: "Method not allowed" });
@@ -30,6 +27,7 @@ export default async (req) => {
     r = await store.get(`req:${p.jid}`, { type: "json" });
   }
   if (!r) return json(404, { error: "unknown job" });
+  await store.delete(`running:${p.jid}`).catch(() => {});   // engine finished: release its claim
   if (r.status !== "processing") return json(200, { ok: true, already: r.status });   // idempotent: retries are harmless
 
   const delivered = Math.max(0, Math.min(Number(p.delivered) || 0, r.reserved || 0));

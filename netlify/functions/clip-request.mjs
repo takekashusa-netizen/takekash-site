@@ -2,6 +2,7 @@
 // Saves the request (Netlify Blobs "clip-requests"), emails the owner the order, and confirms to the customer.
 import { getStore } from "@netlify/blobs";
 import portal from "../../lib/portal.cjs";
+import mail from "../../lib/mail.cjs";
 import crypto from "crypto";
 import funnel from "../../lib/seo/funnel.cjs";
 
@@ -19,13 +20,7 @@ const json = (req, status, body) => new Response(JSON.stringify(body), { status,
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const VIDEO_HOSTS = /^(www\.|m\.|clips\.)?(twitch\.tv|kick\.com|youtube\.com|youtu\.be)$/i;
 
-async function sendEmail(env, to, subject, html, replyTo) {
-  const r = await fetch("https://api.resend.com/emails", {
-    method: "POST", headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: env.FROM_EMAIL, to, subject, html, ...(replyTo ? { reply_to: replyTo } : {}) }),
-  });
-  if (!r.ok) throw new Error(`Resend ${r.status}: ${await r.text()}`);
-}
+const sendEmail = (env, to, subject, html, replyTo) => mail.send(env, { to, subject, html, replyTo });   // one mail layer
 
 export default async (req, context) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(req) });

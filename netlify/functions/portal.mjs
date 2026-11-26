@@ -12,6 +12,7 @@ const json = (req, status, body) => new Response(JSON.stringify(body), { status,
 const SAME = { ok: true, message: "If that email has TakeKash clips or a plan, a sign-in link is on its way. Check your inbox." };
 
 export default async (req) => {
+  await access.ensureSigningSecret(getStore("keys"));
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(req) });
   const env = process.env;
   const stores = { requests: getStore("clip-requests"), quota: getStore("clip-quota"), access: getStore("seo-access") };
