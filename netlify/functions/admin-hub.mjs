@@ -38,6 +38,8 @@ async function engineRuns() {
   return out;
 }
 
+const escH = (x) => String(x ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
 async function overview() {
   const req = getStore("clip-requests"), box = getStore("mail-outbox"), m = getStore("mail");
   const jobs = (await all(req, "req:", 1000)).map(({ key, cbk, slots, ...r }) => r)
@@ -98,6 +100,17 @@ async function act(b) {
       if (r.slots && r.reserved) await D.refund(getStore("clip-quota"), r.slots);
       Object.assign(r, { status: "failed", reserved: 0 }); T.step(r, "cancelled", "allowance refunded");
       await req.setJSON(`req:${r.id}`, r); return { ok: true };
+    }
+    case "deliver": {                                       // hand-made clips (e.g. YouTube jobs made on the Mac)
+      const r = await job(b.id); if (!r) return { error: "no such job" };
+      let link; try { link = new URL(String(b.link || "")); } catch { return { error: "Paste a full https link to the clips" }; }
+      if (link.protocol !== "https:") return { error: "Paste a full https link to the clips" };
+      Object.assign(r, { status: "delivered", download: link.toString(), delivered: Number(b.clips) || r.reserved || 0, deliveredAt: new Date().toISOString() });
+      T.step(r, "delivered", "by owner"); await req.delete(`queue:${r.id}`); await req.setJSON(`req:${r.id}`, r);
+      const site = process.env.SITE_URL || "https://takekash.netlify.app";
+      await mail.send(process.env, { to: r.email, subject: "Your TakeKash clips are ready", html: `<p>Your clips are ready:</p><p><a href="${escH(link.toString())}"><b>Download your clips →</b></a></p><p>You can also see every job at <a href="${site}/portal">My clips</a>. Reply to this email with any questions.</p><p>— TakeKash</p>` });
+      T.step(r, "delivery_email"); await req.setJSON(`req:${r.id}`, r);
+      return { ok: true };
     }
     case "note": {
       const r = await job(b.id); if (!r) return { error: "no such job" };

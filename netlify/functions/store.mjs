@@ -93,13 +93,15 @@ export default async (req) => {
     const id = crypto.randomBytes(10).toString("hex"), reqs = getStore("clip-requests");
     const r = T.step({ id, url, email: o.email, at: new Date().toISOString(), plan: "paid", order: sid, reserved: o.clips, slots: [], status: "processing", cbk: D.newCallbackKey() }, "requested");
     T.step(r, "confirmed", `paid order ${S.PACKAGES[o.sku].name}`); T.step(r, "queued");
+    const owner = D.needsOwnerMachine(url);
+    if (owner) { r.status = "manual"; r.ownerMachine = true; T.step(r, "manual", "YouTube link: made on the owner's machine"); }
     await reqs.setJSON(`req:${id}`, r);
-    await reqs.setJSON(`queue:${id}`, { jid: id, url, clips: o.clips, cbk: r.cbk });
+    if (!owner) await reqs.setJSON(`queue:${id}`, { jid: id, url, clips: o.clips, cbk: r.cbk });
     try { await portal.indexJob(reqs, o.email, id); } catch (e) { console.error("portal index", e); }
-    if (D.useGithubEngine()) await D.dispatchJob({}).catch(() => {});
+    if (!owner && D.useGithubEngine()) await D.dispatchJob({}).catch(() => {});
     Object.assign(o, { status: "processing", url, jobId: id, linkedAt: new Date().toISOString() });
     await orders.setJSON(`order:${sid}`, o);
-    try { await mail.send(env, { to: access.ownerEmail(env), subject: `Order job started: ${S.PACKAGES[o.sku].name}`, html: `<p>${esc(o.email)} sent <a href="${esc(url)}">${esc(url)}</a>. Job ${id} is queued (${o.clips} clips).</p>` }); } catch {}
+    try { await mail.send(env, { to: access.ownerEmail(env), subject: `Order job started: ${S.PACKAGES[o.sku].name}`, html: `<p>${esc(o.email)} sent <a href="${esc(url)}">${esc(url)}</a>. Job ${id} ${owner ? "is a YouTube link: make it on your Mac (worker/owner_streams.py) and deliver from the Admin Hub" : "is queued"} (${o.clips} clips).</p>` }); } catch {}
     return json(req, 200, { order: S.publicOrder(o), message: "Got it. Your clips are being made now; we'll email you when they're ready." });
   }
 

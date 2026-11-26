@@ -1,5 +1,9 @@
 User-agent: *
 Disallow: /admin.html
+Disallow: /admin/
+Disallow: /portal
+Disallow: /store/thanks
+Disallow: /confirm
 Disallow: /api/
 Disallow: /ebooks/upload
 Disallow: /ebooks/thanks

@@ -168,12 +168,14 @@ label{display:block;font-size:11px;font-weight:600;color:var(--mute);text-transf
     $("dlgc").innerHTML = `<div class="row" style="justify-content:space-between"><h2>Job ${esc(j.id)}</h2><button class="btn ghost small" id="x">Close</button></div>
       <p class="small">${esc(j.email)} · ${esc(j.plan || "")} · ${j.reserved || 0} clip(s) reserved · ${j.delivered || 0} delivered<br><a href="${esc(j.url)}" target="_blank" rel="noopener">${esc(j.url)}</a>${j.download ? `<br><a href="${esc(j.download)}">Download link</a>` : ""}</p>
       <h2 style="margin-top:14px">Every step</h2><ol class="tl">${(j.events || []).map((e) => `<li class="${["failed", "manual", "cancelled"].includes(e.s) ? "bad" : ""}"><b>${esc(data.stepLabels[e.s] || e.s)}</b>${e.d ? ` <span class="mute">— ${esc(e.d)}</span>` : ""}<time>${esc(when(e.at))}</time></li>`).join("") || '<li class="mute">No steps recorded (job made before step tracking).</li>'}</ol>
-      <label>Add a note</label><input id="nt"><div class="row" style="margin-top:10px"><button class="btn ghost" id="nb">Save note</button><button class="btn" id="rq">Re-run job</button><button class="btn danger" id="cx">Cancel + refund</button></div><div class="msg" id="jm"></div>`;
+      <label>Add a note</label><input id="nt"><div class="row" style="margin-top:10px"><button class="btn ghost" id="nb">Save note</button><button class="btn" id="rq">Re-run job</button><button class="btn danger" id="cx">Cancel + refund</button></div>
+      <label style="margin-top:12px">Deliver by hand (link to the clips, e.g. Google Drive)</label><input id="dl" placeholder="https://drive.google.com/..."><div class="row" style="margin-top:8px"><button class="btn" id="db">Mark delivered + email customer</button></div><div class="msg" id="jm"></div>`;
     $("dlg").hidden = false;
     $("x").onclick = () => $("dlg").hidden = true;
     $("nb").onclick = () => doAct({ action: "note", id, text: $("nt").value }, true);
     $("rq").onclick = () => confirm("Put this job back in the clip engine queue?") && doAct({ action: "requeue", id }, true);
     $("cx").onclick = () => confirm("Cancel this job and refund the customer's clips?") && doAct({ action: "cancel", id }, true);
+    $("db").onclick = () => $("dl").value && confirm("Email the customer this download link and mark the job delivered?") && doAct({ action: "deliver", id, link: $("dl").value.trim() }, true);
   }
   function openConv(id) {
     const c = data.inbox.find((x) => x.id === id); if (!c) return;
