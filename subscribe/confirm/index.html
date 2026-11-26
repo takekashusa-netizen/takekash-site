@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Confirm signup | TakeKash</title><meta name="robots" content="noindex"><link rel="icon" href="/favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0d0c;--panel:#131715;--line:#26302b;--ink:#eef3ef;--mute:#93a39a;--kash:#2fe07c;--bad:#ff6b6b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif}
+.wrap{max-width:560px;margin:0 auto;padding:28px 16px}.logo{font:700 20px 'Space Grotesk',sans-serif;color:var(--ink);text-decoration:none}.logo b{color:var(--kash)}
+h1{font:700 34px/1.1 'Space Grotesk',sans-serif;letter-spacing:-.03em;margin:28px 0 10px}h1 em{font-style:normal;color:var(--kash)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-top:16px}
+.btn{width:100%;background:var(--kash);color:#04210f;border:0;border-radius:10px;padding:14px;font:700 16px 'Space Grotesk',sans-serif;cursor:pointer}
+.msg{margin-top:12px;color:var(--mute)}.msg.bad{color:var(--bad)}
+</style></head><body><div class="wrap">
+<a class="logo" href="/">Take<b>Kash</b></a>
+<h1>One tap to <em>confirm</em></h1>
+<p style="color:var(--mute)">Confirm you want TakeKash emails. You can unsubscribe from any email.</p>
+<div class="card"><button class="btn" id="go">Yes, sign me up</button><div class="msg" id="m" role="status"></div></div>
+</div><script>
+(() => {
+  const p = new URLSearchParams(location.search), m = document.getElementById("m"), b = document.getElementById("go");
+  b.onclick = async () => {   // a click, not the page load, confirms — so inbox link scanners can't sign anyone up
+    b.disabled = true; m.className = "msg"; m.textContent = "Confirming…";
+    try {
+      const r = await fetch("/api/subscribe/confirm", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ e: p.get("e"), t: p.get("t") }) });
+      const j = await r.json(); m.textContent = j.message || j.error; if (!r.ok) { m.className = "msg bad"; b.disabled = false; } else b.textContent = "Confirmed ✓";
+    } catch { m.className = "msg bad"; m.textContent = "Network error. Try again."; b.disabled = false; }
+  };
+})();
+</script></body></html>
