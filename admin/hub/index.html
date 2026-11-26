@@ -47,9 +47,9 @@ label{display:block;font-size:11px;font-weight:600;color:var(--mute);text-transf
   <nav class="tabs" role="tablist">
     <button data-t="overview" aria-selected="true">Overview</button><button data-t="jobs">Clip jobs</button>
     <button data-t="inbox">Inbox</button><button data-t="contacts">Customers</button><button data-t="leads">Outreach</button>
-    <button data-t="orders">Orders</button><button data-t="social">Social</button><button data-t="email">Email</button><button data-t="system">System</button>
+    <button data-t="orders">Orders</button><button data-t="streams">Streams</button><button data-t="social">Social</button><button data-t="email">Email</button><button data-t="system">System</button>
   </nav>
-  <div id="v-overview"></div><div id="v-jobs" hidden></div><div id="v-inbox" hidden></div><div id="v-contacts" hidden></div><div id="v-leads" hidden></div><div id="v-orders" hidden></div><div id="v-social" hidden></div><div id="v-email" hidden></div><div id="v-system" hidden></div>
+  <div id="v-overview"></div><div id="v-jobs" hidden></div><div id="v-inbox" hidden></div><div id="v-contacts" hidden></div><div id="v-leads" hidden></div><div id="v-orders" hidden></div><div id="v-streams" hidden></div><div id="v-social" hidden></div><div id="v-email" hidden></div><div id="v-system" hidden></div>
 </section>
 </div>
 <div class="dlg" id="dlg" hidden><div class="card" id="dlgc"></div></div>
@@ -60,7 +60,7 @@ label{display:block;font-size:11px;font-weight:600;color:var(--mute);text-transf
   const ago = (iso) => { if (!iso) return "never"; const s = (Date.now() - Date.parse(iso)) / 1000; return s < 90 ? `${Math.round(s)}s ago` : s < 5400 ? `${Math.round(s / 60)} min ago` : s < 172800 ? `${Math.round(s / 3600)} h ago` : new Date(iso).toLocaleDateString(); };
   const when = (iso) => iso ? new Date(iso).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit" }) : "";
   let token = null, data = null;
-  const TABS = ["overview", "jobs", "inbox", "contacts", "leads", "orders", "social", "email", "system"];
+  const TABS = ["overview", "jobs", "inbox", "contacts", "leads", "orders", "streams", "social", "email", "system"];
   try { token = localStorage.getItem("tk_admin"); } catch {}
   const q = new URLSearchParams(location.search).get("t");
   if (q) { token = q; try { localStorage.setItem("tk_admin", q); } catch {} history.replaceState(null, "", "/admin/hub"); }
@@ -117,6 +117,8 @@ label{display:block;font-size:11px;font-weight:600;color:var(--mute);text-transf
       <div class="card"><h2>Import leads</h2><p class="mute small">One per line: email, name, subject (comma or tab separated). Re-importing keeps each lead's stage.</p><textarea id="li"></textarea><div class="row" style="margin-top:10px"><button class="btn" id="lb">Import</button></div><div class="msg" id="lm"></div></div>`;
     const od = d.orders || [];
     $("v-orders").innerHTML = `<div class="card"><h2>Store orders</h2>${od.length ? `<table><tr><th>Paid</th><th>Buyer</th><th>Package</th><th>Status</th></tr>${od.map((o) => `<tr><td class="small">${esc(when(o.paidAt))}${o.livemode ? "" : ' <span class="mute">(test)</span>'}</td><td>${esc(o.email)}<div class="mute small">#${esc(o.ref)}${o.url ? " · " + esc(o.url) : ""}</div></td><td>${o.clips} clips · $${((o.amount || 0) / 100).toFixed(2)}</td><td><span class="chip ${o.status === "processing" ? "processing" : o.status === "awaiting_link" ? "failed" : "delivered"}">${esc(o.status === "awaiting_link" ? "waiting on link" : o.status)}</span></td></tr>`).join("")}</table>` : '<p class="mute">No orders yet. The store is at <a href="/store">/store</a>.</p>'}</div>`;
+    const rr = d.runs || {}, runRows = (list) => list === null ? '<p class="mute">GitHub didn\'t answer; try Refresh.</p>' : (list || []).length ? `<table><tr><th>Started</th><th>Trigger</th><th>Result</th></tr>${list.map((x) => `<tr><td class="small"><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(when(x.at))}</a></td><td class="small">${esc(x.event)} · ${esc(x.branch)}</td><td><span class="chip ${x.conclusion === "success" ? "delivered" : x.conclusion === "failure" ? "failed" : "processing"}">${esc(x.conclusion || x.status)}</span></td></tr>`).join("")}</table>` : '<p class="mute">No runs yet.</p>';
+    $("v-streams").innerHTML = `<div class="card"><h2>My stream clips</h2><p class="mute small">Every past broadcast is split into 1-hour pieces; hours without real audio are skipped. Open a run and scroll to Artifacts to download its clips (kept 30 days). YouTube streams run on your Mac: <code>./mac-integration/clip_my_streams.sh</code></p>${runRows(rr["owner-streams"])}</div><div class="card"><h2>Customer clip engine</h2>${runRows(rr["customer-job"])}</div>`;
     const so = d.social, local = (iso) => { if (!iso) return ""; const t = new Date(iso); t.setMinutes(t.getMinutes() - t.getTimezoneOffset()); return t.toISOString().slice(0, 16); };
     const ed = window.__post || {};
     $("v-social").innerHTML = `<div class="card"><h2>Post calendar</h2>${so.posts.filter((p) => p.status !== "cancelled").length ? `<table><tr><th>When</th><th>Post</th><th>Status</th></tr>${so.posts.filter((p) => p.status !== "cancelled").map((p) => `<tr class="click" data-post="${esc(p.id)}"><td class="small">${p.scheduledAt ? esc(when(p.scheduledAt)) : '<span class="mute">no time</span>'}</td><td>${esc((p.title || p.caption).slice(0, 70))}<div class="mute small">${p.platforms.map(esc).join(", ")}</div></td><td><span class="chip ${p.status === "posted" ? "delivered" : p.status === "due" ? "failed" : "processing"}">${esc(p.status)}</span></td></tr>`).join("")}</table>` : '<p class="mute">Nothing planned yet.</p>'}</div>

@@ -24,6 +24,19 @@ const all = async (store, prefix, limit = 500) => {
   return out;
 };
 
+// Public GitHub API (repo is public): latest clip-engine and owner-stream runs. Never fails the overview.
+async function engineRuns() {
+  const repo = "takekashusa-netizen/autoclip-pipeline", out = {};
+  for (const wf of ["owner-streams.yml", "customer-job.yml"]) {
+    try {
+      const r = await fetch(`https://api.github.com/repos/${repo}/actions/workflows/${wf}/runs?per_page=8`, { headers: { "User-Agent": "takekash-admin", Accept: "application/vnd.github+json" }, signal: AbortSignal.timeout(6000) });
+      const d = r.ok ? await r.json() : { workflow_runs: [] };
+      out[wf.replace(".yml", "")] = (d.workflow_runs || []).map((x) => ({ id: x.id, status: x.status, conclusion: x.conclusion, branch: x.head_branch, event: x.event, at: x.created_at, url: x.html_url }));
+    } catch { out[wf.replace(".yml", "")] = null; }
+  }
+  return out;
+}
+
 async function overview() {
   const req = getStore("clip-requests"), box = getStore("mail-outbox"), m = getStore("mail");
   const jobs = (await all(req, "req:", 1000)).map(({ key, cbk, slots, ...r }) => r)
@@ -57,6 +70,7 @@ async function overview() {
     leads: (await crm.listAll(getStore("crm"), "lead:", 2000)).map(({ _key, ...l }) => l)
       .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt))),
     leadStages: crm.STAGES,
+    runs: await engineRuns(),
     orders: (await crm.listAll(getStore("orders"), "order:", 1000)).map(({ _key, key, ...o }) => ({ ...o, sid: undefined, ref: String(o.sid || "").slice(-10) }))
       .sort((a, b) => String(b.paidAt).localeCompare(String(a.paidAt))),
     social: { posts: await social.list(getStore("social")), platforms: social.PLATFORMS, limits: social.LIMITS },
