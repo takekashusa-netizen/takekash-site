@@ -1,6 +1,7 @@
 // POST /api/clip-confirm {id, t}  — customer clicked "Start my clips" from their email.
 // Checks the allowance, signs a job ticket, and hands it to the Railway clip engine.
 import { getStore } from "@netlify/blobs";
+import T from "../../lib/timeline.cjs";
 import mail from "../../lib/mail.cjs";
 import crypto from "crypto";
 import funnel from "../../lib/seo/funnel.cjs";
@@ -48,6 +49,7 @@ export default async (req) => {
     return json(req, 402, { error: plan === "free" ? "You've used your 3 free clips. Pick a plan to keep going." : "You've used this month's clips. Upgrade to Pro for more.", upgrade: true });
   }
   Object.assign(r, { plan, reserved: res.clips, slots: res.slots, month: res.month, confirmedAt: new Date().toISOString() });
+  T.step(r, "confirmed"); T.step(r, "allowance", `${res.clips} clip(s) on ${plan}`);
   await funnel.track(getStore("funnel"), "clip_confirmed");
 
   let sent = false;
@@ -60,6 +62,7 @@ export default async (req) => {
       if (!sent) console.error("railway refused job", resp.status, await resp.text().catch(() => ""));
     } else {                                               // free engine: GitHub Actions pulls from this queue
       r.cbk = D.newCallbackKey(); await store.setJSON(`req:${id}`, r);   // stored first so the callback can be verified
+      T.step(r, "queued"); await store.setJSON(`req:${id}`, r);
       await store.setJSON(`queue:${id}`, { jid: id, url: r.url, clips: res.clips, cbk: r.cbk });
       sent = true;
       if (D.useGithubEngine()) await D.dispatchJob({}).catch((e) => console.error("engine wake-up failed (queue still runs)", e));
@@ -67,6 +70,7 @@ export default async (req) => {
   } catch (e) { console.error("railway submit failed", e); }
 
   r.status = sent ? "processing" : "manual";
+  if (!sent) T.step(r, "manual");
   if (!sent) { await D.refund(quota, res.slots); r.reserved = 0; r.slots = []; }
   await store.setJSON(`req:${id}`, r);
   try {

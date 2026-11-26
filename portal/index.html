@@ -99,6 +99,7 @@ input:focus{outline:2px solid var(--kash);outline-offset:-1px;border-color:trans
           <div class="src">${esc(j.source)} stream</div>
           <div class="meta">Requested ${esc(when(j.requestedAt))}${j.finishedAt ? ` · finished ${esc(when(j.finishedAt))}` : ""}${j.clips ? ` · ${j.delivered || 0}/${j.clips} clips` : ""}</div>
           ${j.download ? `<div class="meta">Link works until ${esc(when(j.downloadExpires))}</div>` : ""}
+          ${(j.steps || []).length ? `<div class="meta">Latest: ${esc(j.steps.at(-1).step)} · ${esc(when(j.steps.at(-1).at))}</div>` : ""}
         </div>
         <div class="row">
           <span class="chip ${esc(j.status)}">${esc(LABEL[j.status] || j.status)}</span>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin Hub | TakeKash</title><meta name="robots" content="noindex,nofollow"><link rel="icon" href="/favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0d0c;--panel:#131715;--panel2:#1a1f1c;--line:#26302b;--ink:#eef3ef;--mute:#93a39a;--kash:#2fe07c;--kash2:#1fb862;--warn:#f5b83d;--bad:#ff6b6b;--r:14px}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Inter,system-ui,sans-serif;-webkit-text-size-adjust:100%}
+a{color:var(--kash)}.wrap{max-width:1100px;margin:0 auto;padding:16px 14px 70px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.logo{font:700 19px 'Space Grotesk',sans-serif;color:var(--ink);text-decoration:none}.logo b{color:var(--kash)}.logo span{color:var(--mute);font-weight:500;font-size:13px;margin-left:6px}
+nav.tabs{display:flex;gap:6px;overflow-x:auto;margin:0 0 14px;padding-bottom:2px}
+nav.tabs button{background:var(--panel);color:var(--mute);border:1px solid var(--line);border-radius:99px;padding:7px 14px;font:600 13px Inter,sans-serif;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected=true]{background:var(--kash);color:#04210f;border-color:var(--kash)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+h2{font:700 16px 'Space Grotesk',sans-serif;margin:0 0 10px}
+.grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.stat b{display:block;font:700 24px 'Space Grotesk',sans-serif}.stat span{color:var(--mute);font-size:12px}
+.ok{color:var(--kash)}.warn{color:var(--warn)}.bad{color:var(--bad)}.mute{color:var(--mute)}
+table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:8px 6px;border-top:1px solid var(--line);vertical-align:top}th{color:var(--mute);font-weight:600;font-size:12px;border-top:0}
+tr.click{cursor:pointer}tr.click:hover{background:var(--panel2)}
+.chip{font-size:11px;font-weight:600;padding:2px 9px;border-radius:99px;border:1px solid var(--line);white-space:nowrap}
+.chip.delivered{color:var(--kash);border-color:var(--kash2)}.chip.processing,.chip.confirming,.chip.awaiting_confirm{color:var(--warn);border-color:var(--warn)}.chip.failed,.chip.manual{color:var(--bad);border-color:var(--bad)}
+ol.tl{list-style:none;margin:0;padding:0 0 0 14px;border-left:2px solid var(--line)}
+ol.tl li{position:relative;padding:0 0 12px 10px}ol.tl li::before{content:"";position:absolute;left:-19px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--kash)}
+ol.tl li.bad::before{background:var(--bad)}ol.tl time{color:var(--mute);font-size:12px;display:block}
+input,textarea,select{width:100%;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit;font-size:15px}
+textarea{min-height:110px;font-family:ui-monospace,Menlo,monospace;font-size:13px}
+label{display:block;font-size:11px;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;margin:10px 0 5px}
+.btn{background:var(--kash);color:#04210f;border:0;border-radius:10px;padding:10px 14px;font:700 14px 'Space Grotesk',sans-serif;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}.btn.danger{background:transparent;color:var(--bad);border:1px solid var(--bad)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.msg{color:var(--mute);margin-top:8px;min-height:1.4em}
+.small{font-size:12px}[hidden]{display:none!important}
+.dlg{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center;z-index:9}
+.dlg .card{width:100%;max-width:640px;max-height:88vh;overflow:auto;margin:0;border-radius:16px 16px 0 0}
+@media(min-width:700px){.dlg{align-items:center}.dlg .card{border-radius:16px}}
+</style></head><body><div class="wrap">
+<header><a class="logo" href="/admin/hub">Take<b>Kash</b><span>Admin Hub</span></a><div class="row"><button class="btn ghost small" id="refresh" hidden>Refresh</button><button class="btn ghost small" id="out" hidden>Sign out</button></div></header>
+
+<section id="signin">
+  <div class="card"><h2>Owner sign-in</h2>
+    <p class="mute">Enter the owner email. A sign-in link is emailed to it (good for 30 days on this device).</p>
+    <form id="sf"><input id="se" type="email" autocomplete="email" required placeholder="owner email"><div class="row" style="margin-top:10px"><button class="btn">Email me the link</button></div><div class="msg" id="sm"></div></form>
+  </div>
+</section>
+
+<section id="app" hidden>
+  <nav class="tabs" role="tablist">
+    <button data-t="overview" aria-selected="true">Overview</button><button data-t="jobs">Clip jobs</button>
+    <button data-t="email">Email</button><button data-t="system">System</button>
+  </nav>
+  <div id="v-overview"></div><div id="v-jobs" hidden></div><div id="v-email" hidden></div><div id="v-system" hidden></div>
+</section>
+</div>
+<div class="dlg" id="dlg" hidden><div class="card" id="dlgc"></div></div>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const ago = (iso) => { if (!iso) return "never"; const s = (Date.now() - Date.parse(iso)) / 1000; return s < 90 ? `${Math.round(s)}s ago` : s < 5400 ? `${Math.round(s / 60)} min ago` : s < 172800 ? `${Math.round(s / 3600)} h ago` : new Date(iso).toLocaleDateString(); };
+  const when = (iso) => iso ? new Date(iso).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit" }) : "";
+  let token = null, data = null;
+  try { token = localStorage.getItem("tk_admin"); } catch {}
+  const q = new URLSearchParams(location.search).get("t");
+  if (q) { token = q; try { localStorage.setItem("tk_admin", q); } catch {} history.replaceState(null, "", "/admin/hub"); }
+  const api = (method, body) => fetch("/api/admin-hub", { method, headers: { Authorization: `Bearer ${token}`, ...(body ? { "Content-Type": "application/json" } : {}) }, body: body ? JSON.stringify(body) : undefined });
+
+  async function load() {
+    const r = await api("GET");
+    if (r.status === 401) { token = null; try { localStorage.removeItem("tk_admin"); } catch {} return show(false); }
+    data = await r.json(); show(true); render();
+  }
+  function show(on) { $("signin").hidden = on; $("app").hidden = !on; $("out").hidden = !on; $("refresh").hidden = !on; }
+
+  function health(iso, okMin) { if (!iso) return '<span class="bad">never</span>'; const m = (Date.now() - Date.parse(iso)) / 60000; return `<span class="${m <= okMin ? "ok" : "warn"}">${ago(iso)}</span>`; }
+  function render() {
+    const d = data, jc = d.jobCounts;
+    $("v-overview").innerHTML = `
+      <div class="card"><h2>Right now</h2><div class="grid">
+        <div class="stat"><b>${d.engine.queued}</b><span>jobs waiting</span></div>
+        <div class="stat"><b>${d.engine.running.length}</b><span>jobs being made</span></div>
+        <div class="stat"><b>${jc.delivered || 0}</b><span>delivered</span></div>
+        <div class="stat"><b class="${(jc.failed || 0) + (jc.manual || 0) ? "bad" : ""}">${(jc.failed || 0) + (jc.manual || 0)}</b><span>failed / by hand</span></div>
+        <div class="stat"><b>${d.customers}</b><span>customers</span></div>
+        <div class="stat"><b>${d.subscribers.byStatus.active || 0}</b><span>email subscribers</span></div>
+      </div></div>
+      <div class="card"><h2>Systems</h2><table>
+        <tr><td>Clip engine (GitHub Actions, checks every 5 min)</td><td>last check ${health(d.engine.lastPoll && d.engine.lastPoll.at, 12)}</td></tr>
+        <tr><td>Email sender (${esc(d.mail.provider)})</td><td>${d.mail.provider === "outbox" ? `Gmail sender last check ${health(d.mail.senderLastPoll && d.mail.senderLastPoll.at, 3)}` : '<span class="ok">direct</span>'} · ${d.mail.queued} waiting · ${d.mail.sending} sending · <span class="${d.mail.failed.length ? "bad" : ""}">${d.mail.failed.length} failed</span></td></tr>
+      </table></div>
+      <div class="card"><h2>Latest jobs</h2>${jobsTable(d.jobs.slice(0, 8))}</div>`;
+    $("v-jobs").innerHTML = `<div class="card"><h2>All clip jobs (${d.jobs.length})</h2>${jobsTable(d.jobs)}</div>`;
+    $("v-email").innerHTML = `
+      <div class="card"><h2>Subscribers</h2><div class="grid">
+        ${Object.entries(d.subscribers.byStatus).map(([k, v]) => `<div class="stat"><b>${v}</b><span>${esc(k)}</span></div>`).join("") || '<span class="mute">No subscribers yet.</span>'}
+      </div><table style="margin-top:10px"><tr><th>List</th><th>Active</th><th>Welcome sequence</th></tr>
+        ${d.lists.map((l) => `<tr><td>${esc(l.name)}<div class="mute small">${esc(l.id)}</div></td><td>${d.subscribers.perList[l.id] || 0}</td><td>${esc(l.welcomeSequence || "—")}</td></tr>`).join("")}</table></div>
+      <div class="card"><h2>Sequences</h2>${d.sequences.length ? d.sequences.map((s) => `<p><b>${esc(s.name)}</b> <span class="mute small">${esc(s.id)}</span><br>${s.steps.map((x, i) => `<span class="small">${i + 1}. +${x.delayHours}h · ${esc(x.subject)}</span>`).join("<br>")}</p>`).join("") : '<p class="mute">No sequences yet.</p>'}</div>
+      <div class="card"><h2>Send to a list</h2><label>List</label><select id="bl">${d.lists.map((l) => `<option value="${esc(l.id)}">${esc(l.name)}</option>`).join("")}</select>
+        <label>Subject</label><input id="bs"><label>Email (HTML; {{first_name}} works)</label><textarea id="bh"></textarea>
+        <div class="row" style="margin-top:10px"><button class="btn" id="bsend">Send now</button></div><div class="msg" id="bm"></div></div>
+      <div class="card"><h2>Failed emails</h2>${d.mail.failed.length ? `<table>${d.mail.failed.map((f) => `<tr><td>${esc(f.to)}<div class="mute small">${esc(f.subject)} · ${esc(f.lastError)}</div></td><td><button class="btn ghost small" data-retry="${esc(f.id)}">Retry</button></td></tr>`).join("")}</table>` : '<p class="mute">None.</p>'}</div>
+      <div class="card"><h2>Recent subscribers</h2><table>${d.subscribers.recent.map((s) => `<tr><td>${esc(s.email)}<div class="mute small">${esc((s.lists || []).join(", "))} · from ${esc(s.consent && s.consent.source)}</div></td><td><span class="chip ${s.status === "active" ? "delivered" : s.status === "pending" ? "processing" : "failed"}">${esc(s.status)}</span></td></tr>`).join("") || '<tr><td class="mute">None yet.</td></tr>'}</table></div>`;
+    $("v-system").innerHTML = `<div class="card"><h2>Where everything runs</h2><table>
+      <tr><td>Website + APIs</td><td><a href="https://app.netlify.com/projects/takekash/deploys" target="_blank" rel="noopener">Netlify deploys</a></td></tr>
+      <tr><td>Clip engine runs</td><td><a href="https://github.com/takekashusa-netizen/autoclip-pipeline/actions/workflows/customer-job.yml" target="_blank" rel="noopener">GitHub Actions</a></td></tr>
+      <tr><td>Clip downloads storage</td><td><a href="https://railway.com/project/21752529-23a0-4732-960e-16dc11a45eb0" target="_blank" rel="noopener">Railway bucket</a></td></tr>
+      <tr><td>Gmail sender</td><td><a href="https://script.google.com/home" target="_blank" rel="noopener">Apps Script</a></td></tr>
+      <tr><td>Payments</td><td><a href="https://dashboard.stripe.com" target="_blank" rel="noopener">Stripe</a></td></tr>
+      <tr><td>Older stats dashboard</td><td><a href="/admin.html">admin.html</a></td></tr></table></div>
+      <div class="card"><h2>Every job step</h2><table>${Object.entries(d.stepLabels).map(([k, v]) => `<tr><td>${esc(v)}</td><td class="mute small">${esc(k)}</td></tr>`).join("")}</table></div>`;
+    document.querySelectorAll("tr[data-job]").forEach((tr) => tr.onclick = () => openJob(tr.dataset.job));
+    document.querySelectorAll("[data-retry]").forEach((b) => b.onclick = () => doAct({ action: "retryMail", id: b.dataset.retry }));
+    const bs = $("bsend"); if (bs) bs.onclick = async () => {
+      if (!confirm(`Send "${$("bs").value}" to everyone active on this list?`)) return;
+      const r = await (await api("POST", { action: "broadcast", list: $("bl").value, subject: $("bs").value, html: $("bh").value })).json();
+      $("bm").textContent = r.error || `Sent to ${r.sent}.`;
+    };
+  }
+  function jobsTable(jobs) {
+    if (!jobs.length) return '<p class="mute">No clip jobs yet.</p>';
+    return `<table><tr><th>Customer</th><th>Status</th><th>Last step</th></tr>${jobs.map((j) => {
+      const last = (j.events || []).at(-1);
+      return `<tr class="click" data-job="${esc(j.id)}"><td>${esc(j.email)}<div class="mute small">${esc((j.url || "").replace(/^https?:\/\//, "").slice(0, 48))}</div></td><td><span class="chip ${esc(j.status)}">${esc(j.status)}</span></td><td class="small">${last ? `${esc(data.stepLabels[last.s] || last.s)}<div class="mute">${ago(last.at)}</div>` : ""}</td></tr>`;
+    }).join("")}</table>`;
+  }
+  function openJob(id) {
+    const j = data.jobs.find((x) => x.id === id); if (!j) return;
+    $("dlgc").innerHTML = `<div class="row" style="justify-content:space-between"><h2>Job ${esc(j.id)}</h2><button class="btn ghost small" id="x">Close</button></div>
+      <p class="small">${esc(j.email)} · ${esc(j.plan || "")} · ${j.reserved || 0} clip(s) reserved · ${j.delivered || 0} delivered<br><a href="${esc(j.url)}" target="_blank" rel="noopener">${esc(j.url)}</a>${j.download ? `<br><a href="${esc(j.download)}">Download link</a>` : ""}</p>
+      <h2 style="margin-top:14px">Every step</h2><ol class="tl">${(j.events || []).map((e) => `<li class="${["failed", "manual", "cancelled"].includes(e.s) ? "bad" : ""}"><b>${esc(data.stepLabels[e.s] || e.s)}</b>${e.d ? ` <span class="mute">— ${esc(e.d)}</span>` : ""}<time>${esc(when(e.at))}</time></li>`).join("") || '<li class="mute">No steps recorded (job made before step tracking).</li>'}</ol>
+      <label>Add a note</label><input id="nt"><div class="row" style="margin-top:10px"><button class="btn ghost" id="nb">Save note</button><button class="btn" id="rq">Re-run job</button><button class="btn danger" id="cx">Cancel + refund</button></div><div class="msg" id="jm"></div>`;
+    $("dlg").hidden = false;
+    $("x").onclick = () => $("dlg").hidden = true;
+    $("nb").onclick = () => doAct({ action: "note", id, text: $("nt").value }, true);
+    $("rq").onclick = () => confirm("Put this job back in the clip engine queue?") && doAct({ action: "requeue", id }, true);
+    $("cx").onclick = () => confirm("Cancel this job and refund the customer's clips?") && doAct({ action: "cancel", id }, true);
+  }
+  async function doAct(body, reopen) {
+    const r = await (await api("POST", body)).json();
+    if (r.error) { alert(r.error); return; }
+    await load(); if (reopen) openJob(body.id);
+  }
+  document.querySelectorAll("nav.tabs button").forEach((b) => b.onclick = () => {
+    document.querySelectorAll("nav.tabs button").forEach((x) => x.setAttribute("aria-selected", x === b));
+    ["overview", "jobs", "email", "system"].forEach((t) => $(`v-${t}`).hidden = t !== b.dataset.t);
+  });
+  $("sf").onsubmit = async (e) => { e.preventDefault(); $("sm").textContent = "Sending…";
+    const r = await (await fetch("/api/admin-hub/signin", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: $("se").value }) })).json();
+    $("sm").textContent = r.message || r.error; };
+  $("out").onclick = () => { token = null; try { localStorage.removeItem("tk_admin"); } catch {} show(false); };
+  $("refresh").onclick = load;
+  $("dlg").onclick = (e) => { if (e.target.id === "dlg") $("dlg").hidden = true; };
+  if (token) { load(); setInterval(() => { if (!document.hidden && $("dlg").hidden) load(); }, 30000); } else show(false);
+})();
+</script></body></html>
