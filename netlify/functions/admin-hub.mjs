@@ -2,12 +2,15 @@
 //   POST /api/admin-hub/signin {email}       -> emails the owner a 30-day sign-in link (same answer for anyone)
 //   GET  /api/admin-hub                      -> everything: engine, mail, jobs (with every step), subscribers, lists
 //   POST /api/admin-hub {action, ...}        -> requeue | cancel | note | retryMail | upsertList | upsertSequence | broadcast
+//                                               | reply | closeChat | reopenChat | saveContact | importLeads | leadStage
 import { getStore } from "@netlify/blobs";
 import access from "../../lib/seo/access.cjs";
 import mail from "../../lib/mail.cjs";
 import lists from "../../lib/lists.cjs";
 import D from "../../lib/seo/delivery.cjs";
 import T from "../../lib/timeline.cjs";
+import crm from "../../lib/crm.cjs";
+const esc = (x) => String(x).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 const json = (s, b) => new Response(JSON.stringify(b), { status: s, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
 const all = async (store, prefix, limit = 500) => {
@@ -47,6 +50,12 @@ async function overview() {
     lists: (await all(m, "list:")).map(({ key, ...l }) => l),
     sequences: (await all(m, "seq:")).map(({ key, ...s }) => ({ id: s.id, name: s.name, steps: s.steps.map((x) => ({ delayHours: x.delayHours, subject: x.subject })) })),
     customers: (await req.list({ prefix: "jobs:" })).blobs.length,
+    inbox: (await crm.listAll(getStore("crm"), "conv:", 500)).map(({ _key, key, ...c }) => c)
+      .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt))).slice(0, 200),
+    contacts: (await crm.contacts({ requests: req, mail: m, crm: getStore("crm"), access: getStore("seo-access") })).slice(0, 1000),
+    leads: (await crm.listAll(getStore("crm"), "lead:", 2000)).map(({ _key, ...l }) => l)
+      .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt))),
+    leadStages: crm.STAGES,
     stepLabels: T.LABELS,
   };
 }
@@ -83,6 +92,21 @@ async function act(b) {
       if (!b.list || !b.subject || !b.html) return { error: "list, subject and html required" };
       return { ok: true, ...(await lists.broadcast(m, process.env, b.list, b.subject, b.html)) };
     }
+    case "reply": {
+      const c = await crm.getConv(getStore("crm"), b.id); if (!c) return { error: "no such conversation" };
+      await crm.addMessage(getStore("crm"), c, "owner", b.text);
+      const link = `${process.env.SITE_URL || "https://takekash.netlify.app"}/contact?c=${c.id}&k=${encodeURIComponent(c.key)}`;
+      await mail.send(process.env, { to: c.email, subject: "TakeKash replied to your message",
+        html: `<p>${esc(String(b.text)).replace(/\n/g, "<br>")}</p><p style="color:#666">— TakeKash</p><p><a href="${link}">Reply in the chat →</a> or just reply to this email.</p>` });
+      return { ok: true };
+    }
+    case "closeChat": case "reopenChat": {
+      const s = getStore("crm"), c = await crm.getConv(s, b.id); if (!c) return { error: "no such conversation" };
+      c.status = b.action === "closeChat" ? "closed" : "open"; c.unread = 0; await s.setJSON(`conv:${c.id}`, c); return { ok: true };
+    }
+    case "saveContact": return { ok: true, contact: await crm.saveContact(getStore("crm"), b.email, b) };
+    case "importLeads": return { ok: true, ...(await crm.importLeads(getStore("crm"), b.leads, b.source || "import")) };
+    case "leadStage": return { ok: true, lead: await crm.setLeadStage(getStore("crm"), b.email, b.stage) };
     default: return { error: "unknown action" };
   }
 }
