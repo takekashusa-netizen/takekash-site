@@ -35,6 +35,7 @@ export default async (req) => {
   const delivered = Math.max(0, Math.min(Number(p.delivered) || 0, r.reserved || 0));
   await D.refund(getStore("clip-quota"), r.slots || [], (r.reserved || 0) - delivered);   // pay only for clips delivered
   Object.assign(r, { status: p.status === "done" && p.download ? "delivered" : "failed", delivered, finishedAt: new Date().toISOString() });
+  if (r.status === "delivered") Object.assign(r, { download: p.download, downloadExp: Date.now() + 7 * 864e5 - 36e5 });   // shown in the customer portal
   await store.setJSON(`req:${p.jid}`, r);
   await funnel.track(getStore("funnel"), r.status === "delivered" ? "clip_delivered" : "clip_failed");
 
