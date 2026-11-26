@@ -7,6 +7,7 @@ import crypto from "crypto";
 import funnel from "../../lib/seo/funnel.cjs";
 import D from "../../lib/seo/delivery.cjs";
 import { confirmToken } from "./clip-request.mjs";
+import access from "../../lib/seo/access.cjs";
 
 const ORIGINS = new Set(["https://takekash.com", "https://www.takekash.com", "https://takekash.netlify.app", ...(process.env.SITE_ORIGINS || "").split(",").map((s) => s.trim()).filter(Boolean)]);
 const cors = (req) => { const o = req.headers.get("origin"); return ORIGINS.has(o) ? { "Access-Control-Allow-Origin": o, "Access-Control-Allow-Headers": "Content-Type", Vary: "Origin" } : {}; };
@@ -24,6 +25,7 @@ const sendEmail = (env, to, subject, html) => mail.send(env, { to, subject, html
 export default async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(req) });
   if (req.method !== "POST") return json(req, 405, { error: "Method not allowed" });
+  await access.ensureSigningSecret(getStore("keys"));   // same self-made key clip-request signed with
   let id, t;
   try { ({ id, t } = await req.json()); } catch { return json(req, 400, { error: "Invalid request." }); }
   if (!/^[a-f0-9]{20}$/.test(String(id || "")) || typeof t !== "string") return json(req, 400, { error: "This link isn't valid." });
