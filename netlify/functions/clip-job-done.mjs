@@ -1,6 +1,7 @@
 // POST /api/clip-job-done  — signed callback from the clip engine (GitHub Actions HMAC, or legacy Railway Ed25519).
 // Verified against Railway's Ed25519 public key (pinned in Blobs on first fetch).
 import { getStore } from "@netlify/blobs";
+import T from "../../lib/timeline.cjs";
 import mail from "../../lib/mail.cjs";
 import funnel from "../../lib/seo/funnel.cjs";
 import D from "../../lib/seo/delivery.cjs";
@@ -34,6 +35,7 @@ export default async (req) => {
   await D.refund(getStore("clip-quota"), r.slots || [], (r.reserved || 0) - delivered);   // pay only for clips delivered
   Object.assign(r, { status: p.status === "done" && p.download ? "delivered" : "failed", delivered, finishedAt: new Date().toISOString() });
   if (r.status === "delivered") Object.assign(r, { download: p.download, downloadExp: Date.now() + 7 * 864e5 - 36e5 });   // shown in the customer portal
+  T.step(r, r.status, `${delivered} clip(s)`);
   await store.setJSON(`req:${p.jid}`, r);
   await funnel.track(getStore("funnel"), r.status === "delivered" ? "clip_delivered" : "clip_failed");
 
@@ -46,7 +48,9 @@ export default async (req) => {
         `<p>We couldn't find clip-worthy moments in <a href="${esc(r.url)}">this stream</a>, or it couldn't be downloaded. Nothing was taken from your clip allowance.</p><p>Reply to this email and we'll take a look by hand.</p><p>— TakeKash</p>`);
       await sendEmail(env, env.OWNER_EMAIL, "Clip job failed", `<p>Request ${esc(p.jid)} for ${esc(r.email)} failed. Stream: ${esc(r.url)}</p>`);
     }
-  } catch (e) { console.error("delivery email failed", e); return json(500, { error: "email failed" }); }   // 500 => Railway retries
+  } catch (e) { console.error("delivery email failed", e); return json(500, { error: "email failed" }); }   // 500 => engine retries
+  const after = await store.get(`req:${p.jid}`, { type: "json" });
+  if (after) await store.setJSON(`req:${p.jid}`, T.step(after, "delivery_email"));
   return json(200, { ok: true });
 };
 

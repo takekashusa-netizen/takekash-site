@@ -1,6 +1,7 @@
 // POST /api/clip-request { url, email }  — done-for-you clip order from the homepage.
 // Saves the request (Netlify Blobs "clip-requests"), emails the owner the order, and confirms to the customer.
 import { getStore } from "@netlify/blobs";
+import T from "../../lib/timeline.cjs";
 import portal from "../../lib/portal.cjs";
 import mail from "../../lib/mail.cjs";
 import crypto from "crypto";
@@ -47,7 +48,7 @@ export default async (req, context) => {
   // does the POST, so email scanners that pre-open links can't start a job.
   const id = crypto.randomBytes(10).toString("hex");
   await funnel.track(getStore("funnel"), "clip_request");
-  await store.setJSON(`req:${id}`, { id, url, email, at: new Date().toISOString(), status: "awaiting_confirm" });
+  await store.setJSON(`req:${id}`, T.step({ id, url, email, at: new Date().toISOString(), status: "awaiting_confirm" }, "requested"));
   try { await portal.indexJob(store, email, id); } catch (e) { console.error("portal index failed", e); }   // customer portal: jobs per email
   const origin = ORIGINS.has(req.headers.get("origin")) ? req.headers.get("origin") : (process.env.SITE_URL || "https://takekash.netlify.app");
   let link;
@@ -57,6 +58,7 @@ export default async (req, context) => {
     await sendEmail(env, email, "Confirm your clips from TakeKash",
       `<p>Tap to start your clips from:</p><p><a href="${esc(url)}">${esc(url)}</a></p><p><a href="${link}"><b>Confirm and start my clips →</b></a></p><p>Didn't request this? Ignore this email and nothing happens.</p><p>— TakeKash</p>`,
       env.REPLY_TO || env.OWNER_EMAIL);
+    const rec = await store.get(`req:${id}`, { type: "json" }); if (rec) await store.setJSON(`req:${id}`, T.step(rec, "confirm_email"));
   } catch (e) {
     console.error("confirm email failed", e);
     return json(req, 502, { error: "We couldn't email you right now." });
