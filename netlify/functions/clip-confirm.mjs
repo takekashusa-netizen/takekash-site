@@ -1,6 +1,7 @@
 // POST /api/clip-confirm {id, t}  — customer clicked "Start my clips" from their email.
 // Checks the allowance, signs a job ticket, and hands it to the Railway clip engine.
 import { getStore } from "@netlify/blobs";
+import mail from "../../lib/mail.cjs";
 import crypto from "crypto";
 import funnel from "../../lib/seo/funnel.cjs";
 import D from "../../lib/seo/delivery.cjs";
@@ -17,11 +18,7 @@ const MESSAGES = {
   failed: "We couldn't make clips from that stream. Your clip allowance was refunded.",
 };
 
-async function sendEmail(env, to, subject, html) {
-  const r = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: env.FROM_EMAIL, to, subject, html, reply_to: env.REPLY_TO || env.OWNER_EMAIL }) });
-  if (!r.ok) throw new Error(`Resend ${r.status}`);
-}
+const sendEmail = (env, to, subject, html) => mail.send(env, { to, subject, html });   // one mail layer: own relay | Resend | log
 
 export default async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(req) });
@@ -55,11 +52,18 @@ export default async (req) => {
 
   let sent = false;
   try {
-    const { privateKey } = await D.siteKey(getStore("keys"));
-    const ticket = D.makeTicket(privateKey, { jid: id, url: r.url, clips: res.clips });
-    const resp = await fetch(`${D.API_BASE}/api/customer-jobs`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(ticket), signal: AbortSignal.timeout(15000) });
-    sent = resp.status === 202;
-    if (!sent) console.error("railway refused job", resp.status, await resp.text().catch(() => ""));
+    if (process.env.CLIP_ENGINE === "railway") {          // legacy paid engine, kept only as an escape hatch
+      const { privateKey } = await D.siteKey(getStore("keys"));
+      const ticket = D.makeTicket(privateKey, { jid: id, url: r.url, clips: res.clips });
+      const resp = await fetch(`${D.API_BASE}/api/customer-jobs`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(ticket), signal: AbortSignal.timeout(15000) });
+      sent = resp.status === 202;
+      if (!sent) console.error("railway refused job", resp.status, await resp.text().catch(() => ""));
+    } else {                                               // free engine: GitHub Actions pulls from this queue
+      r.cbk = D.newCallbackKey(); await store.setJSON(`req:${id}`, r);   // stored first so the callback can be verified
+      await store.setJSON(`queue:${id}`, { jid: id, url: r.url, clips: res.clips, cbk: r.cbk });
+      sent = true;
+      if (D.useGithubEngine()) await D.dispatchJob({}).catch((e) => console.error("engine wake-up failed (queue still runs)", e));
+    }
   } catch (e) { console.error("railway submit failed", e); }
 
   r.status = sent ? "processing" : "manual";

@@ -1,33 +1,39 @@
-// POST /api/clip-job-done  — signed callback from the Railway clip engine.
+// POST /api/clip-job-done  — signed callback from the clip engine (GitHub Actions HMAC, or legacy Railway Ed25519).
 // Verified against Railway's Ed25519 public key (pinned in Blobs on first fetch).
 import { getStore } from "@netlify/blobs";
+import mail from "../../lib/mail.cjs";
 import funnel from "../../lib/seo/funnel.cjs";
 import D from "../../lib/seo/delivery.cjs";
 
 const json = (s, b) => new Response(JSON.stringify(b), { status: s, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-async function sendEmail(env, to, subject, html) {
-  const r = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: env.FROM_EMAIL, to, subject, html, reply_to: env.REPLY_TO || env.OWNER_EMAIL }) });
-  if (!r.ok) throw new Error(`Resend ${r.status}`);
-}
+const sendEmail = (env, to, subject, html) => mail.send(env, { to, subject, html });   // one mail layer: own relay | Resend | log
 
 export default async (req) => {
   if (req.method !== "POST") return json(405, { error: "Method not allowed" });
   const raw = await req.text();
   if (raw.length > 8192) return json(413, { error: "too large" });
   let body; try { body = JSON.parse(raw); } catch { return json(400, { error: "bad json" }); }
-  const p = D.verifyCallback(await D.railwayPub(getStore("keys")), body);
-  if (!p) return json(401, { error: "invalid signature" });
-
   const env = process.env, store = getStore("clip-requests");
-  const r = await store.get(`req:${p.jid}`, { type: "json" });
+  let p, r;
+  if (typeof body.mac === "string") {               // free GitHub Actions engine: per-job HMAC key
+    const jid = D.peekJid(body);
+    r = jid ? await store.get(`req:${jid}`, { type: "json" }) : null;
+    p = r ? D.verifyMacCallback(r.cbk, body) : null;
+    if (!p || p.jid !== jid) return json(401, { error: "invalid signature" });
+  } else {                                          // legacy Railway engine: Ed25519
+    p = D.verifyCallback(await D.railwayPub(getStore("keys")), body);
+    if (!p) return json(401, { error: "invalid signature" });
+    r = await store.get(`req:${p.jid}`, { type: "json" });
+  }
   if (!r) return json(404, { error: "unknown job" });
+  await store.delete(`running:${p.jid}`).catch(() => {});   // engine finished: release its claim
   if (r.status !== "processing") return json(200, { ok: true, already: r.status });   // idempotent: retries are harmless
 
   const delivered = Math.max(0, Math.min(Number(p.delivered) || 0, r.reserved || 0));
   await D.refund(getStore("clip-quota"), r.slots || [], (r.reserved || 0) - delivered);   // pay only for clips delivered
   Object.assign(r, { status: p.status === "done" && p.download ? "delivered" : "failed", delivered, finishedAt: new Date().toISOString() });
+  if (r.status === "delivered") Object.assign(r, { download: p.download, downloadExp: Date.now() + 7 * 864e5 - 36e5 });   // shown in the customer portal
   await store.setJSON(`req:${p.jid}`, r);
   await funnel.track(getStore("funnel"), r.status === "delivered" ? "clip_delivered" : "clip_failed");
 

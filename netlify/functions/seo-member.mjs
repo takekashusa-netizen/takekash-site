@@ -9,6 +9,7 @@ const json = (req, status, body) => new Response(JSON.stringify(body), { status,
 const clip = (v, n) => String(v || "").slice(0, n);
 
 export default async (req) => {
+  await access.ensureSigningSecret(getStore("keys"));
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(req) });
   const env = process.env, auth = req.headers.get("authorization") || "";
   const email = auth.startsWith("Bearer ") ? access.verifyToken(auth.slice(7), env) : null;
