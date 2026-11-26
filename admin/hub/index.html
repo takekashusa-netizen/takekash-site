@@ -47,9 +47,9 @@ label{display:block;font-size:11px;font-weight:600;color:var(--mute);text-transf
   <nav class="tabs" role="tablist">
     <button data-t="overview" aria-selected="true">Overview</button><button data-t="jobs">Clip jobs</button>
     <button data-t="inbox">Inbox</button><button data-t="contacts">Customers</button><button data-t="leads">Outreach</button>
-    <button data-t="email">Email</button><button data-t="system">System</button>
+    <button data-t="social">Social</button><button data-t="email">Email</button><button data-t="system">System</button>
   </nav>
-  <div id="v-overview"></div><div id="v-jobs" hidden></div><div id="v-inbox" hidden></div><div id="v-contacts" hidden></div><div id="v-leads" hidden></div><div id="v-email" hidden></div><div id="v-system" hidden></div>
+  <div id="v-overview"></div><div id="v-jobs" hidden></div><div id="v-inbox" hidden></div><div id="v-contacts" hidden></div><div id="v-leads" hidden></div><div id="v-social" hidden></div><div id="v-email" hidden></div><div id="v-system" hidden></div>
 </section>
 </div>
 <div class="dlg" id="dlg" hidden><div class="card" id="dlgc"></div></div>
@@ -60,7 +60,7 @@ label{display:block;font-size:11px;font-weight:600;color:var(--mute);text-transf
   const ago = (iso) => { if (!iso) return "never"; const s = (Date.now() - Date.parse(iso)) / 1000; return s < 90 ? `${Math.round(s)}s ago` : s < 5400 ? `${Math.round(s / 60)} min ago` : s < 172800 ? `${Math.round(s / 3600)} h ago` : new Date(iso).toLocaleDateString(); };
   const when = (iso) => iso ? new Date(iso).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit" }) : "";
   let token = null, data = null;
-  const TABS = ["overview", "jobs", "inbox", "contacts", "leads", "email", "system"];
+  const TABS = ["overview", "jobs", "inbox", "contacts", "leads", "social", "email", "system"];
   try { token = localStorage.getItem("tk_admin"); } catch {}
   const q = new URLSearchParams(location.search).get("t");
   if (q) { token = q; try { localStorage.setItem("tk_admin", q); } catch {} history.replaceState(null, "", "/admin/hub"); }
@@ -115,6 +115,14 @@ label{display:block;font-size:11px;font-weight:600;color:var(--mute);text-transf
     $("v-leads").innerHTML = `<div class="card"><h2>Outreach pipeline (${d.leads.length})</h2><div class="grid">${byStage.map(([st, ls]) => `<div class="stat"><b>${ls.length}</b><span>${esc(st)}</span></div>`).join("")}</div>
       <table style="margin-top:10px"><tr><th>Lead</th><th>Stage</th></tr>${d.leads.map((l) => `<tr><td><b>${esc(l.name || l.email)}</b><div class="mute small">${esc(l.email)} · ${esc(l.subject)}</div></td><td><select data-stage="${esc(l.email)}">${d.leadStages.map((st) => `<option ${st === l.stage ? "selected" : ""}>${st}</option>`).join("")}</select></td></tr>`).join("") || '<tr><td class="mute">No leads yet. Import below.</td></tr>'}</table></div>
       <div class="card"><h2>Import leads</h2><p class="mute small">One per line: email, name, subject (comma or tab separated). Re-importing keeps each lead's stage.</p><textarea id="li"></textarea><div class="row" style="margin-top:10px"><button class="btn" id="lb">Import</button></div><div class="msg" id="lm"></div></div>`;
+    const so = d.social, local = (iso) => { if (!iso) return ""; const t = new Date(iso); t.setMinutes(t.getMinutes() - t.getTimezoneOffset()); return t.toISOString().slice(0, 16); };
+    const ed = window.__post || {};
+    $("v-social").innerHTML = `<div class="card"><h2>Post calendar</h2>${so.posts.filter((p) => p.status !== "cancelled").length ? `<table><tr><th>When</th><th>Post</th><th>Status</th></tr>${so.posts.filter((p) => p.status !== "cancelled").map((p) => `<tr class="click" data-post="${esc(p.id)}"><td class="small">${p.scheduledAt ? esc(when(p.scheduledAt)) : '<span class="mute">no time</span>'}</td><td>${esc((p.title || p.caption).slice(0, 70))}<div class="mute small">${p.platforms.map(esc).join(", ")}</div></td><td><span class="chip ${p.status === "posted" ? "delivered" : p.status === "due" ? "failed" : "processing"}">${esc(p.status)}</span></td></tr>`).join("")}</table>` : '<p class="mute">Nothing planned yet.</p>'}</div>
+      <div class="card"><h2>${ed.id ? "Edit post" : "New post"}</h2><label>Platforms</label><div class="row">${so.platforms.map((p) => `<label style="text-transform:none;margin:0;display:flex;gap:5px;align-items:center"><input type="checkbox" style="width:auto" name="pf" value="${p}" ${(ed.platforms || []).includes(p) ? "checked" : ""}>${p}</label>`).join("")}</div>
+        <label>Account</label><input id="pa" placeholder="@takekashgaming" value="${esc(ed.account || "")}"><label>YouTube title</label><input id="pt" value="${esc(ed.title || "")}">
+        <label>Caption <span id="pc-n"></span></label><textarea id="pc" style="font-family:inherit;font-size:15px">${esc(ed.caption || "")}</textarea>
+        <label>Video link (clip download)</label><input id="pm" value="${esc(ed.mediaUrl || "")}"><label>Post time</label><input id="pw" type="datetime-local" value="${local(ed.scheduledAt)}">
+        <div class="row" style="margin-top:10px"><button class="btn" id="psch">Schedule</button><button class="btn ghost" id="pdr">Save draft</button>${ed.id ? '<button class="btn ghost" id="pnew">New post</button>' : ""}</div><div class="msg" id="pmsg"></div></div>`;
     $("v-system").innerHTML = `<div class="card"><h2>Where everything runs</h2><table>
       <tr><td>Website + APIs</td><td><a href="https://app.netlify.com/projects/takekash/deploys" target="_blank" rel="noopener">Netlify deploys</a></td></tr>
       <tr><td>Clip engine runs</td><td><a href="https://github.com/takekashusa-netizen/autoclip-pipeline/actions/workflows/customer-job.yml" target="_blank" rel="noopener">GitHub Actions</a></td></tr>
@@ -130,6 +138,11 @@ label{display:block;font-size:11px;font-weight:600;color:var(--mute);text-transf
     document.querySelectorAll("[data-stage]").forEach((sel) => sel.onchange = () => doAct({ action: "leadStage", email: sel.dataset.stage, stage: sel.value }));
     const cqi = $("cqi"); if (cqi) cqi.oninput = () => { window.__cq = cqi.value; const pos = cqi.selectionStart; render(); const n = $("cqi"); n.focus(); n.setSelectionRange(pos, pos); };
     const lb = $("lb"); if (lb) lb.onclick = async () => { const r = await (await api("POST", { action: "importLeads", leads: $("li").value, source: "gmail outreach" })).json(); $("lm").textContent = r.error || `Added ${r.added}, updated ${r.updated}, skipped ${r.skipped}.`; if (!r.error) setTimeout(load, 800); };
+    document.querySelectorAll("tr[data-post]").forEach((tr) => tr.onclick = () => openPost(tr.dataset.post));
+    const pc = $("pc"); if (pc) { const cnt = () => { const pf = [...document.querySelectorAll("[name=pf]:checked")].map((x) => x.value); $("pc-n").textContent = pf.filter((p) => p !== "youtube").map((p) => `${p} ${pc.value.length}/${data.social.limits[p]}`).join(" · "); }; pc.oninput = cnt; document.querySelectorAll("[name=pf]").forEach((x) => x.onchange = cnt); cnt();
+      const save = async (schedule) => { const post = { id: (window.__post || {}).id, platforms: [...document.querySelectorAll("[name=pf]:checked")].map((x) => x.value), account: $("pa").value, title: $("pt").value, caption: pc.value, mediaUrl: $("pm").value, scheduledAt: $("pw").value ? new Date($("pw").value).toISOString() : null, schedule };
+        const r = await (await api("POST", { action: "savePost", post })).json(); if (r.error) { $("pmsg").textContent = r.error; return; } window.__post = null; await load(); $("pmsg").textContent = schedule ? "Scheduled. You'll get an email when it's time." : r.problems.length ? `Saved. To fix before scheduling: ${r.problems.join("; ")}` : "Draft saved."; };
+      $("psch").onclick = () => save(true); $("pdr").onclick = () => save(false); if ($("pnew")) $("pnew").onclick = () => { window.__post = null; render(); }; }
     const bs = $("bsend"); if (bs) bs.onclick = async () => {
       if (!confirm(`Send "${$("bs").value}" to everyone active on this list?`)) return;
       const r = await (await api("POST", { action: "broadcast", list: $("bl").value, subject: $("bs").value, html: $("bh").value })).json();
@@ -180,6 +193,18 @@ label{display:block;font-size:11px;font-weight:600;color:var(--mute);text-transf
     document.querySelectorAll("[data-oc]").forEach((a) => a.onclick = (e) => { e.preventDefault(); openConv(a.dataset.oc); });
     $("cs").onclick = () => doAct({ action: "saveContact", email, tags: $("ct").value, notes: $("cn").value }, "contact");
   }
+  function openPost(id) {
+    const p = data.social.posts.find((x) => x.id === id); if (!p) return;
+    $("dlgc").innerHTML = `<div class="row" style="justify-content:space-between"><h2>Post</h2><button class="btn ghost small" id="x">Close</button></div>
+      <p class="small">${p.platforms.map(esc).join(", ")} · ${esc(p.status)}${p.scheduledAt ? ` · ${esc(when(p.scheduledAt))}` : ""}</p>${p.title ? `<p><b>${esc(p.title)}</b></p>` : ""}<pre style="white-space:pre-wrap;font:14px Inter,sans-serif">${esc(p.caption)}</pre>${p.mediaUrl ? `<p><a href="${esc(p.mediaUrl)}">Video</a></p>` : ""}
+      ${Object.entries(p.postedUrls || {}).map(([k, v]) => `<p class="small">${esc(k)}: <a href="${esc(v)}" target="_blank" rel="noopener">${esc(v)}</a></p>`).join("")}
+      ${p.platforms.map((k) => `<label>${esc(k)} live link</label><input data-pu="${esc(k)}" value="${esc((p.postedUrls || {})[k] || "")}">`).join("")}
+      <div class="row" style="margin-top:10px"><button class="btn" id="pp">Mark posted</button><button class="btn ghost" id="pe">Edit</button><button class="btn danger" id="pcx">Cancel post</button></div>`;
+    $("dlg").hidden = false; $("x").onclick = () => $("dlg").hidden = true;
+    $("pp").onclick = () => { const u = {}; document.querySelectorAll("[data-pu]").forEach((i) => i.value && (u[i.dataset.pu] = i.value)); doAct({ action: "postStatus", id, status: "posted", postedUrls: u }); $("dlg").hidden = true; };
+    $("pe").onclick = () => { window.__post = p; $("dlg").hidden = true; render(); };
+    $("pcx").onclick = () => confirm("Cancel this post?") && (doAct({ action: "postStatus", id, status: "cancelled" }), $("dlg").hidden = true);
+  }
   async function doAct(body, reopen) {
     const r = await (await api("POST", body)).json();
     if (r.error) { alert(r.error); return; }
@@ -197,6 +222,6 @@ label{display:block;font-size:11px;font-weight:600;color:var(--mute);text-transf
   $("dlg").onclick = (e) => { if (e.target.id === "dlg") $("dlg").hidden = true; };
   const pick = (t) => { const b = document.querySelector(`nav.tabs button[data-t="${t}"]`); if (b) b.click(); };
   if (location.hash.length > 1) setTimeout(() => pick(location.hash.slice(1)), 0);
-  if (token) { load(); setInterval(() => { if (!document.hidden && $("dlg").hidden) load(); }, 30000); } else show(false);
+  if (token) { load(); setInterval(() => { const a = document.activeElement; if (!document.hidden && $("dlg").hidden && !(a && /INPUT|TEXTAREA|SELECT/.test(a.tagName))) load(); }, 30000); } else show(false);
 })();
 </script></body></html>

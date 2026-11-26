@@ -2,7 +2,7 @@
 //   POST /api/admin-hub/signin {email}       -> emails the owner a 30-day sign-in link (same answer for anyone)
 //   GET  /api/admin-hub                      -> everything: engine, mail, jobs (with every step), subscribers, lists
 //   POST /api/admin-hub {action, ...}        -> requeue | cancel | note | retryMail | upsertList | upsertSequence | broadcast
-//                                               | reply | closeChat | reopenChat | saveContact | importLeads | leadStage
+//                                               | reply | closeChat | reopenChat | saveContact | importLeads | leadStage | savePost | postStatus
 import { getStore } from "@netlify/blobs";
 import access from "../../lib/seo/access.cjs";
 import mail from "../../lib/mail.cjs";
@@ -10,6 +10,7 @@ import lists from "../../lib/lists.cjs";
 import D from "../../lib/seo/delivery.cjs";
 import T from "../../lib/timeline.cjs";
 import crm from "../../lib/crm.cjs";
+import social from "../../lib/social.cjs";
 const esc = (x) => String(x).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 const json = (s, b) => new Response(JSON.stringify(b), { status: s, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
@@ -56,6 +57,7 @@ async function overview() {
     leads: (await crm.listAll(getStore("crm"), "lead:", 2000)).map(({ _key, ...l }) => l)
       .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt))),
     leadStages: crm.STAGES,
+    social: { posts: await social.list(getStore("social")), platforms: social.PLATFORMS, limits: social.LIMITS },
     stepLabels: T.LABELS,
   };
 }
@@ -107,6 +109,8 @@ async function act(b) {
     case "saveContact": return { ok: true, contact: await crm.saveContact(getStore("crm"), b.email, b) };
     case "importLeads": return { ok: true, ...(await crm.importLeads(getStore("crm"), b.leads, b.source || "import")) };
     case "leadStage": return { ok: true, lead: await crm.setLeadStage(getStore("crm"), b.email, b.stage) };
+    case "savePost": return { ok: true, ...(await social.upsert(getStore("social"), b.post || {})) };
+    case "postStatus": return { ok: true, post: await social.setStatus(getStore("social"), b.id, b.status, b.postedUrls) };
     default: return { error: "unknown action" };
   }
 }
