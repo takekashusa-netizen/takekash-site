@@ -9,8 +9,8 @@ import access from "../../lib/seo/access.cjs";
 import crypto from "crypto";
 import E from "../../lib/ebooks.cjs";
 
-const SITE = () => process.env.SITE_URL || "https://site-production-000380c0.up.railway.app";
-const ORIGINS = new Set(["https://takekash.com", "https://www.takekash.com", ...(process.env.SITE_ORIGINS || "").split(",").map((s) => s.trim()).filter(Boolean)]);
+const SITE = () => process.env.SITE_URL || "https://takekash.netlify.app";
+const ORIGINS = new Set(["https://takekash.com", "https://www.takekash.com", "https://takekash.netlify.app", ...(process.env.SITE_ORIGINS || "").split(",").map((s) => s.trim()).filter(Boolean)]);
 const cors = (req) => { const o = req.headers.get("origin"); return ORIGINS.has(o) ? { "Access-Control-Allow-Origin": o, "Access-Control-Allow-Headers": "Content-Type", Vary: "Origin" } : {}; };
 const json = (req, s, b) => new Response(JSON.stringify(b), { status: s, headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...cors(req) } });
 const MAX_DOWNLOADS = 10;   // per purchase, per file

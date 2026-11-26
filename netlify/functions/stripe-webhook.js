@@ -101,7 +101,7 @@ exports.handler = async (event) => {
     const E = require("../../lib/ebooks.cjs");
     const email = s.customer_details && s.customer_details.email, p = E.CATALOG[s.metadata.sku];
     if (!p || s.payment_status !== "paid") return { statusCode: 200, body: "ignored" };
-    const site = process.env.SITE_URL || "https://site-production-000380c0.up.railway.app";
+    const site = process.env.SITE_URL || "https://takekash.netlify.app";
     const links = p.files.map((f) => `<li><a href="${site}/api/ebook-download?t=${E.signDownload(s.id, f)}">${esc(E.CATALOG[f].title)}</a></li>`).join("");
     try {
       if (email) await sendEmail({ to: email, replyTo: process.env.REPLY_TO || process.env.OWNER_EMAIL, subject: `Your download: ${p.title}`,
