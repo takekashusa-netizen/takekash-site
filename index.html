@@ -180,7 +180,13 @@
     <div class="section-label">CYBER WEEK · FREE FOR BRANDS &amp; SHOPS</div>
     <h2 class="section-title">Your first ad is on us.</h2>
     <p style="max-width:640px;margin:0 auto 18px;color:var(--muted);text-align:center">A 15–30s vertical ad for TikTok, Reels and Shorts, with motion, voice-over, captions and the hashtags people actually search. Free, no card. You get it in about 48 hours.</p>
-    <div class="ml-embedded" data-form="3G0glv" style="max-width:520px;margin:0 auto"></div>
+    <!-- Own form (sends through the Gmail sender today). MailerLite form 3G0glv can come back once takekash.com is a verified MailerLite sender domain. -->
+    <form id="ad-form" class="hero-form" style="max-width:520px;margin:0 auto" onsubmit="return freeAd(event)">
+      <input type="email" id="ad-email" required placeholder="Your email" autocomplete="email" aria-label="Your email">
+      <input type="text" id="ad-shop" placeholder="Brand or shop link (optional)" aria-label="Brand or shop link">
+      <input type="text" name="website" id="ad-hp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
+      <button class="btn btn-primary" type="submit">Claim my free ad</button>
+    </form>
     <p class="form-note" id="ad-msg" style="text-align:center">Streamer? Your first 3 clips are free too ↑</p>
   </section>
   <div class="glow-divider"></div>
@@ -389,6 +395,20 @@ function goHome(anchor){
   closeMenu();
   setTimeout(()=>{const el=document.getElementById(anchor);if(el)el.scrollIntoView({behavior:'smooth'});if(anchor==='get-clips')document.getElementById('hero-url').focus();},60);
   return false;
+}
+async function freeAd(e){
+  e.preventDefault();
+  const m=document.getElementById('ad-msg'), btn=e.target.querySelector('button');
+  btn.disabled=true; m.textContent='Saving your spot…';
+  try{
+    const r=await fetch('/api/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:document.getElementById('ad-email').value.trim(),name:document.getElementById('ad-shop').value.trim().slice(0,120),list:'free-ad-trial',source:'homepage-free-ad',website:document.getElementById('ad-hp').value})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(d.error||'Something went wrong. Try again.');
+    m.textContent=d.message||'Check your email and tap Confirm to claim your free ad.';
+    try{fetch('/api/track',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({event:'ad_trial_signup'}),keepalive:true});}catch(x){}
+    e.target.reset();
+  }catch(err){m.textContent=err.message;}
+  btn.disabled=false; return false;
 }
 // MailerLite "TakeKash Website Leads Form" -> group Website Leads; count each signup in the funnel
 window.ml_webform_success_197172905768912745=function(){try{fetch('/api/track',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({event:'ad_trial_signup'}),keepalive:true});}catch(x){}};
