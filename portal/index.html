@@ -58,7 +58,7 @@ input:focus{outline:2px solid var(--kash);outline-offset:-1px;border-color:trans
       <div class="stat"><b id="plan">–</b><span>plan</span></div>
     </div>
     <div class="bar"><i id="barfill" style="width:0"></i></div>
-    <div class="row" style="margin-top:14px"><a class="btn" href="/#clip">Make more clips</a><a class="btn ghost" id="up" href="/#pricing" hidden>Get more clips</a></div>
+    <div class="row" style="margin-top:14px"><a class="btn" href="/#clip">Make more clips</a><a class="btn ghost" id="up" href="/#pricing" hidden>Get more clips</a><a class="btn ghost" href="/store">Order done-for-you clips</a><button class="btn ghost" id="bill" type="button">Manage billing</button></div><div class="msg" id="billm" role="status"></div>
   </div>
   <div class="card" id="jobs"></div>
 </section>
@@ -72,6 +72,11 @@ input:focus{outline:2px solid var(--kash);outline-offset:-1px;border-color:trans
   let token = null;
   const save = (t) => { token = t; try { t ? localStorage.setItem("tk_portal", t) : localStorage.removeItem("tk_portal"); } catch {} };
   try { token = localStorage.getItem("tk_portal"); } catch {}
+  document.getElementById("bill").addEventListener("click", async () => {
+    const m = document.getElementById("billm"); m.className = "msg"; m.textContent = "Opening billing…";
+    try { const r = await fetch("/api/billing-portal", { method: "POST", headers: { Authorization: `Bearer ${token}` } }); const d = await r.json(); if (d.url) location.href = d.url; else throw new Error(d.error); }
+    catch (e) { m.className = "msg bad"; m.textContent = e.message || "Billing is unavailable right now."; }
+  });
   const q = new URLSearchParams(location.search).get("t");
   if (q) { save(q); history.replaceState(null, "", "/portal"); }
 

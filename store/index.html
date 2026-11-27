@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Done-for-you clips | TakeKash</title><meta name="description" content="Send one stream, get hand-picked vertical clips with captions, titles and hashtags. No account needed.">
+<link rel="icon" href="/favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0d0c;--panel:#131715;--panel2:#1a1f1c;--line:#26302b;--ink:#eef3ef;--mute:#93a39a;--kash:#2fe07c;--kash2:#1fb862;--warn:#f5b83d;--bad:#ff6b6b;--r:14px}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif;-webkit-text-size-adjust:100%}
+a{color:var(--kash)}
+.wrap{max-width:860px;margin:0 auto;padding:20px 16px 60px}
+header.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:10px}
+.logo{font:700 20px 'Space Grotesk',sans-serif;letter-spacing:-.02em;color:var(--ink);text-decoration:none}.logo b{color:var(--kash)}
+.pill{font-size:12px;color:var(--mute);border:1px solid var(--line);padding:4px 10px;border-radius:99px;background:none;cursor:pointer;font-family:inherit}
+h1{font:700 clamp(28px,6vw,40px)/1.08 'Space Grotesk',sans-serif;letter-spacing:-.03em;margin:8px 0 10px}h1 em{font-style:normal;color:var(--kash)}
+.lede{color:var(--mute);max-width:600px;margin:0 0 22px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px}
+label{display:block;font-size:12px;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;margin:0 0 6px}
+input{width:100%;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px;font:inherit;font-size:16px}
+input:focus{outline:2px solid var(--kash);outline-offset:-1px;border-color:transparent}
+.btn{display:inline-block;background:var(--kash);color:#04210f;border:0;border-radius:10px;padding:12px 18px;font:700 15px 'Space Grotesk',sans-serif;cursor:pointer;text-decoration:none;text-align:center}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.msg{margin-top:10px;color:var(--mute);min-height:1.5em}.msg.bad{color:var(--bad)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat b{display:block;font:700 26px 'Space Grotesk',sans-serif}.stat span{color:var(--mute);font-size:13px}
+.bar{height:8px;background:var(--panel2);border-radius:99px;overflow:hidden;margin-top:12px}.bar i{display:block;height:100%;background:var(--kash)}
+.job{display:grid;grid-template-columns:1fr auto;gap:8px 14px;align-items:center}
+.job + .job{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}
+.src{font-weight:600;word-break:break-all}.meta{color:var(--mute);font-size:13px}
+.chip{font-size:12px;font-weight:600;padding:3px 10px;border-radius:99px;border:1px solid var(--line);white-space:nowrap}
+.chip.delivered{color:var(--kash);border-color:var(--kash2)}.chip.processing,.chip.confirming{color:var(--warn);border-color:var(--warn)}
+.chip.failed{color:var(--bad);border-color:var(--bad)}
+.empty{color:var(--mute);text-align:center;padding:24px 8px}
+@media(max-width:560px){.stats{grid-template-columns:1fr 1fr}.job{grid-template-columns:1fr}}
+[hidden]{display:none!important}
+.pk{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.pk .card{display:flex;flex-direction:column;gap:8px}.price{font:700 32px "Space Grotesk",sans-serif}.price small{font-size:14px;color:var(--mute)}@media(max-width:700px){.pk{grid-template-columns:1fr}}
+</style></head><body><div class="wrap">
+<header class="top"><a class="logo" href="/">Take<b>Kash</b></a><a class="pill" href="/portal">My clips</a></header>
+<h1>Send a stream. Get <em>clips that post.</em></h1>
+<p class="lede">A working streamer picks your best moments and delivers 9:16 clips with word-by-word captions, titles and hashtags. One-time price, no subscription, no credits that expire.</p>
+<div class="pk" id="pk"></div>
+<p class="msg" id="m" role="status"></p>
+<p class="meta">After paying you'll paste your Twitch, Kick or YouTube link. Only send streams you own or have the rights to.</p>
+</div>
+<script>
+const P=[["basic","3 hand-picked clips",25,"Your 3 best moments, captioned and ready to post."],["standard","6 hand-picked clips",50,"6 clips from one stream for TikTok, Reels and Shorts."],["premium","10 hand-picked clips",90,"10 clips plus bonus moments when the stream has more."]];
+const pk=document.getElementById("pk"),m=document.getElementById("m");
+for(const [sku,name,price,blurb] of P){const d=document.createElement("div");d.className="card";d.innerHTML=`<b>${name}</b><div class="price">$${price}<small> one time</small></div><div class="meta">${blurb}</div><button class="btn" data-sku="${sku}">Order</button>`;pk.appendChild(d)}
+pk.addEventListener("click",async e=>{const b=e.target.closest("button[data-sku]");if(!b)return;b.disabled=true;m.className="msg";m.textContent="Opening secure checkout…";
+try{const r=await fetch("/api/store/checkout",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sku:b.dataset.sku})});const d=await r.json();if(d.url)location.href=d.url;else throw new Error(d.error)}catch(err){m.className="msg bad";m.textContent=err.message||"Checkout is unavailable right now.";b.disabled=false}});
+</script></body></html>

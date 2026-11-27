@@ -1,6 +1,7 @@
 // POST /api/seo-auth { email }  → emails a 30-day sign-in link to subscribers.
 // Always answers the same way, so it never reveals who is or isn't a customer.
 import { getStore } from "@netlify/blobs";
+import mail from "../../lib/mail.cjs";
 import access from "../../lib/seo/access.cjs";
 import funnel from "../../lib/seo/funnel.cjs";
 
@@ -35,15 +36,10 @@ export default async (req) => {
 
   const origin = ORIGINS.has(req.headers.get("origin")) ? req.headers.get("origin") : (env.SITE_URL || "https://takekash.netlify.app");
   const link = `${origin}/seo?t=${encodeURIComponent(access.signToken(email, env))}`;
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      from: env.FROM_EMAIL, to: email, subject: "Your TakeKash SEO Studio sign-in link",
-      html: `<p>Tap to unlock SEO Studio on this device:</p><p><a href="${link}"><b>Open SEO Studio →</b></a></p><p>The link works for 30 days. Didn't ask for it? Ignore this email.</p>`,
-    }),
-  }).catch((e) => ({ ok: false, text: async () => String(e) }));
-  if (!res.ok) { console.error("seo-auth email failed:", await res.text()); return json(req, 502, { error: "Couldn't send the email right now. Try again in a minute." }); }
+  try {
+    await mail.send(env, { to: email, subject: "Your TakeKash SEO Studio sign-in link",
+      html: `<p>Tap to unlock SEO Studio on this device:</p><p><a href="${link}"><b>Open SEO Studio →</b></a></p><p>The link works for 30 days. Didn't ask for it? Ignore this email.</p>` });
+  } catch (e) { console.error("seo-auth email failed:", e); return json(req, 502, { error: "Couldn't send the email right now. Try again in a minute." }); }
   return json(req, 200, SAME);
 };
 

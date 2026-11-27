@@ -1,0 +1,21 @@
+// node tests/ratelimit.test.mjs — shared limiter: per visitor, per bucket, resets after the window; store checkout returns 429
+import { BlobsServer } from "@netlify/blobs/server";
+import { setEnvironmentContext, getStore } from "@netlify/blobs";
+import fs from "fs"; import os from "os"; import path from "path";
+let pass = 0; const ok = (c, m) => { if (!c) { console.error("FAIL:", m); process.exit(1); } pass++; console.log("ok -", m); };
+const srv = new BlobsServer({ directory: fs.mkdtempSync(path.join(os.tmpdir(), "rl-")), token: "t", port: 0 }); const { port } = await srv.start();
+setEnvironmentContext({ siteID: "s", token: "t", edgeURL: `http://localhost:${port}` });
+const RL = (await import("../lib/ratelimit.cjs")).default, st = getStore("ratelimit"), t0 = Date.now();
+for (let i = 0; i < 3; i++) await RL.hit(st, "b", "1.1.1.1", 3, 1000, t0);
+ok(!(await RL.hit(st, "b", "1.1.1.1", 3, 1000, t0)), "4th hit in the window is refused");
+ok(await RL.hit(st, "b", "2.2.2.2", 3, 1000, t0), "other visitors unaffected");
+ok(await RL.hit(st, "other", "1.1.1.1", 3, 1000, t0), "other buckets unaffected");
+ok(await RL.hit(st, "b", "1.1.1.1", 3, 1000, t0 + 2000), "window resets");
+ok(!(await st.list({ prefix: "rl:" })).blobs.some((b) => b.key.includes("1.1.1.1")), "raw IPs are never stored");
+Object.assign(process.env, { STRIPE_SECRET_KEY: "rk_test_x", MAIL_PROVIDER: "log" });
+const real = globalThis.fetch; globalThis.fetch = async (u, o) => String(u).startsWith("https://api.stripe.com") ? new Response(JSON.stringify({ url: "https://checkout.stripe.com/x" })) : real(u, o);
+const fn = (await import("../netlify/functions/store.mjs")).default;
+let last;
+for (let i = 0; i < 21; i++) last = await fn(new Request("https://s.example/api/store/checkout", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sku: "basic" }) }), { ip: "9.9.9.9" });
+ok(last.status === 429, "21st checkout in an hour from one visitor gets 429");
+console.log(`ratelimit: ${pass} passed`); await srv.stop(); process.exit(0);

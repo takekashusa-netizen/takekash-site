@@ -6,8 +6,7 @@
 //
 // Netlify → Site configuration → Environment variables:
 //   STRIPE_WEBHOOK_SECRET   whsec_... from the Stripe webhook endpoint
-//   RESEND_API_KEY          from resend.com
-//   FROM_EMAIL              e.g. "EditFlow <hello@yourdomain.com>" (domain verified in Resend)
+//   (email goes through lib/mail.cjs: the Gmail sender outbox; no Resend key needed)
 //   OWNER_EMAIL             where YOU get the "new customer" alert
 //   REPLY_TO                (optional) where buyer replies go; defaults to OWNER_EMAIL
 //   APP_ACCESS_URL          (optional) link to the app; also derives the Starter Pack link (<url>/starter-pack/). If unset, the buyer is told access follows personally
@@ -53,13 +52,10 @@ function verifyStripeSignature(rawBody, header, secret) {
 const esc = (s) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
+// One mail layer for the whole site (Gmail sender / outbox); owner alerts go to the owner email even without OWNER_EMAIL set.
+const mail = require("../../lib/mail.cjs");
 async function sendEmail({ to, subject, html, replyTo }) {
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: process.env.FROM_EMAIL, to, subject, html, ...(replyTo ? { reply_to: replyTo } : {}) }),
-  });
-  if (!res.ok) throw new Error(`Resend ${res.status}: ${await res.text()}`);
+  await mail.send(process.env, { to: to || seoAccess.ownerEmail(process.env), subject, html, replyTo: replyTo || undefined });
 }
 
 exports.handler = async (event) => {
@@ -101,12 +97,12 @@ exports.handler = async (event) => {
     const E = require("../../lib/ebooks.cjs");
     const email = s.customer_details && s.customer_details.email, p = E.CATALOG[s.metadata.sku];
     if (!p || s.payment_status !== "paid") return { statusCode: 200, body: "ignored" };
-    const site = process.env.SITE_URL || "https://site-production-000380c0.up.railway.app";
+    const site = process.env.SITE_URL || "https://takekash.netlify.app";
     const links = p.files.map((f) => `<li><a href="${site}/api/ebook-download?t=${E.signDownload(s.id, f)}">${esc(E.CATALOG[f].title)}</a></li>`).join("");
     try {
-      if (email) await sendEmail({ to: email, replyTo: process.env.REPLY_TO || process.env.OWNER_EMAIL, subject: `Your download: ${p.title}`,
+      if (email) await sendEmail({ to: email, replyTo: process.env.REPLY_TO || seoAccess.ownerEmail(process.env), subject: `Your download: ${p.title}`,
         html: `<p>Thanks for your purchase! Your ${p.files.length > 1 ? "ebooks are" : "ebook is"} ready:</p><ul>${links}</ul><p>Links work for 7 days (up to 10 downloads each). Lost them? Open <a href="${site}/ebooks/thanks?session_id=${s.id}">your purchase page</a> any time.</p><p style="color:#666;font-size:12px">${esc(E.LICENSE)}</p>` });
-      await sendEmail({ to: process.env.OWNER_EMAIL, subject: `Ebook sale: ${p.short} (${email || "no email"})`, html: `<p>${esc(p.title)} sold to ${esc(email)} for $${(s.amount_total / 100).toFixed(2)}.</p>` });
+      await sendEmail({ to: seoAccess.ownerEmail(process.env), subject: `Ebook sale: ${p.short} (${email || "no email"})`, html: `<p>${esc(p.title)} sold to ${esc(email)} for $${(s.amount_total / 100).toFixed(2)}.</p>` });
     } catch (err) { console.error("ebook email failed", err); return { statusCode: 500, body: "email failed" }; }
     return { statusCode: 200, body: "ok" };
   }
@@ -121,7 +117,7 @@ exports.handler = async (event) => {
     const amt = typeof s.amount_total === "number" ? `$${(s.amount_total / 100).toFixed(2)}` : "";
     try {
       await sendEmail({
-        to: process.env.OWNER_EMAIL,
+        to: seoAccess.ownerEmail(process.env),
         subject: `New TakeKash subscriber: ${who}`,
         html: `<p><b>New TakeKash (clip tool) subscriber</b></p>
                <p>Email: ${esc(who)}<br>Amount: ${esc(amt)}<br>Subscription: ${esc(s.subscription)}<br>Session: ${esc(s.id)}</p>`,
@@ -145,7 +141,7 @@ exports.handler = async (event) => {
   // 1) Alert the owner first. If this fails, return 500 so Stripe retries — never lose a paying customer.
   try {
     await sendEmail({
-      to: process.env.OWNER_EMAIL,
+      to: seoAccess.ownerEmail(process.env),
       subject: `New EditFlow Pro customer: ${email || "(no email)"}`,
       html: `<p><b>New EditFlow Pro subscriber</b></p>
              <p>Name: ${esc(name)}<br>Email: ${esc(email)}<br>Amount: ${esc(amount)}<br>
@@ -174,7 +170,7 @@ exports.handler = async (event) => {
     try {
       await sendEmail({
         to: email,
-        replyTo: process.env.REPLY_TO || process.env.OWNER_EMAIL,
+        replyTo: process.env.REPLY_TO || seoAccess.ownerEmail(process.env),
         subject: "You're in — EditFlow Pro",
         html: `<p>Hey ${esc(name)},</p>
                <p>Thanks for subscribing to EditFlow Pro${amount ? ` (${esc(amount)}/mo)` : ""}. Your payment went through.</p>

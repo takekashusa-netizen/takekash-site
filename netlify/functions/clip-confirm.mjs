@@ -56,6 +56,12 @@ export default async (req) => {
 
   let sent = false;
   try {
+    if (D.needsOwnerMachine(r.url)) {                      // YouTube: made on the owner's Mac, allowance stays reserved
+      T.step(r, "manual", "YouTube link: made on the owner's machine");
+      r.status = "manual"; r.ownerMachine = true; await store.setJSON(`req:${id}`, r);
+      try { await sendEmail(env, access.ownerEmail(env), `Clip job for your Mac (YouTube): ${r.email}`, `<p>${esc(r.email)} confirmed ${res.clips} clip(s) from <a href="${esc(r.url)}">${esc(r.url)}</a>.</p><p>YouTube blocks cloud downloads, so make these on your Mac (autoclip-pipeline folder):</p><pre>OWNER_COOKIES_BROWSER=chrome .venv/bin/python worker/owner_streams.py clip ${esc(new URL(r.url).searchParams.get("v") || "VIDEO_ID")} 0 3600</pre><p>Then send the clips to the customer and mark the job delivered in the Admin Hub. Request ${id}.</p>`); } catch (e) { console.error("owner email failed", e); }
+      return json(req, 200, { ok: true, status: "manual", clips: res.clips, message: MESSAGES.manual });
+    }
     if (process.env.CLIP_ENGINE === "railway") {          // legacy paid engine, kept only as an escape hatch
       const { privateKey } = await D.siteKey(getStore("keys"));
       const ticket = D.makeTicket(privateKey, { jid: id, url: r.url, clips: res.clips });
@@ -76,7 +82,7 @@ export default async (req) => {
   if (!sent) { await D.refund(quota, res.slots); r.reserved = 0; r.slots = []; }
   await store.setJSON(`req:${id}`, r);
   try {
-    await sendEmail(env, env.OWNER_EMAIL, sent ? `Clip job started (${plan}): ${new URL(r.url).hostname}` : `ACTION NEEDED: clip request to make by hand`,
+    await sendEmail(env, access.ownerEmail(env), sent ? `Clip job started (${plan}): ${new URL(r.url).hostname}` : `ACTION NEEDED: clip request to make by hand`,
       `<p>${sent ? "Automatic job started" : "The clip engine didn't accept this job; please make it by hand."}</p><p>Stream: <a href="${esc(r.url)}">${esc(r.url)}</a><br>Customer: ${esc(r.email)} (${plan}, ${res.clips} clips)<br>Request: ${id}</p>`);
   } catch (e) { console.error("owner email failed", e); }
   return json(req, 200, { ok: true, status: r.status, clips: res.clips, message: MESSAGES[r.status] });

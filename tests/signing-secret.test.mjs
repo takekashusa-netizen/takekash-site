@@ -3,7 +3,7 @@
 import fs from "fs"; import path from "path"; import assert from "assert";
 const dir = "netlify/functions";
 const files = fs.readdirSync(dir, { recursive: true }).filter((f) => /\.(mjs|js|mts)$/.test(f)).map((f) => path.join(dir, f));
-const SIGNS = /confirmToken|signToken|verifyToken|signDownload|verifyDownload|lists\.cjs|portal\.cjs|ebooks\.cjs/;
+const SIGNS = /confirmToken|signToken|verifyToken|signDownload|verifyDownload|orderToken|lists\.cjs|portal\.cjs|ebooks\.cjs|store\.cjs/;
 const EXEMPT = new Set(["netlify/functions/stripe-webhook.js"]);   // needs STRIPE_WEBHOOK_SECRET itself to verify Stripe
 const missing = files.filter((f) => !EXEMPT.has(f)).filter((f) => { const s = fs.readFileSync(f, "utf8"); return SIGNS.test(s) && !s.includes("ensureSigningSecret"); });
 assert.deepStrictEqual(missing, [], "functions signing links without ensureSigningSecret: " + missing.join(", "));

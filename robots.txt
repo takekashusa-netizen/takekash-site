@@ -1,6 +1,10 @@
 User-agent: *
 Disallow: /admin.html
+Disallow: /admin/
+Disallow: /portal
+Disallow: /store/thanks
+Disallow: /confirm
 Disallow: /api/
 Disallow: /ebooks/upload
 Disallow: /ebooks/thanks
-Sitemap: https://site-production-000380c0.up.railway.app/sitemap.xml
+Sitemap: https://takekash.com/sitemap.xml

@@ -59,7 +59,7 @@ export default async (req, context) => {
   try {
     await sendEmail(env, email, "Confirm your clips from TakeKash",
       `<p>Tap to start your clips from:</p><p><a href="${esc(url)}">${esc(url)}</a></p><p><a href="${link}"><b>Confirm and start my clips →</b></a></p><p>Didn't request this? Ignore this email and nothing happens.</p><p>— TakeKash</p>`,
-      env.REPLY_TO || env.OWNER_EMAIL);
+      env.REPLY_TO || access.ownerEmail(env));
     const rec = await store.get(`req:${id}`, { type: "json" }); if (rec) await store.setJSON(`req:${id}`, T.step(rec, "confirm_email"));
   } catch (e) {
     console.error("confirm email failed", e);

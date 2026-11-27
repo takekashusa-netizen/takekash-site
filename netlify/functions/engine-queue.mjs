@@ -3,6 +3,7 @@
 // No shared secret: only the customer-job workflow on main in autoclip-pipeline can get a token that passes.
 // Jobs claimed but not finished in 3 hours go back in the queue once; after that the owner is told.
 import { getStore } from "@netlify/blobs";
+import access from "../../lib/seo/access.cjs";
 import T from "../../lib/timeline.cjs";
 import oidc from "../../lib/github-oidc.cjs";
 import mail from "../../lib/mail.cjs";
@@ -28,7 +29,7 @@ export default async (req) => {
     await store.delete(key);
     const rec = await store.get(`req:${id}`, { type: "json" });
     if ((run.tries || 1) < 2) { await store.setJSON(`queue:${id}`, { ...run.job, tries: (run.tries || 1) + 1 }); if (rec) await store.setJSON(`req:${id}`, T.step(rec, "requeued", "engine run did not finish in 3h")); }
-    else await mail.send(process.env, { to: process.env.OWNER_EMAIL, subject: "ACTION NEEDED: clip job stuck",
+    else await mail.send(process.env, { to: access.ownerEmail(process.env), subject: "ACTION NEEDED: clip job stuck",
       html: `<p>Clip job ${id} was claimed twice and never finished. Make it by hand or check the engine runs.</p>` }).catch(() => {});
   }
 

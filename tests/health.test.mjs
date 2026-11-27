@@ -1,0 +1,25 @@
+// node tests/health.test.mjs — watchdog spots a stopped engine/sender and alerts once per 6 hours
+import { BlobsServer } from "@netlify/blobs/server";
+import { setEnvironmentContext, getStore } from "@netlify/blobs";
+import fs from "fs"; import os from "os"; import path from "path";
+let pass = 0; const ok = (c, m) => { if (!c) { console.error("FAIL:", m); process.exit(1); } pass++; console.log("ok -", m); };
+const srv = new BlobsServer({ directory: fs.mkdtempSync(path.join(os.tmpdir(), "hl-")), token: "t", port: 0 }); const { port } = await srv.start();
+setEnvironmentContext({ siteID: "s", token: "t", edgeURL: `http://localhost:${port}` });
+const H = (await import("../lib/health.cjs")).default;
+const requests = getStore("clip-requests"), outbox = getStore("mail-outbox"), hs = getStore("health"), now = Date.now(), ago = (m) => new Date(now - m * 60e3).toISOString();
+let p = await H.check({ requests, outbox }, now);
+ok(p.some((x) => x.id === "engine-never"), "engine that never polled is flagged");
+await requests.setJSON("engine:lastPoll", { at: ago(3) });
+await outbox.setJSON("sender:lastPoll", { at: ago(1) });
+p = await H.check({ requests, outbox }, now);
+ok(p.length === 0, "healthy stack has no problems");
+await requests.setJSON("engine:lastPoll", { at: ago(45) });
+await requests.setJSON("queue:abc", { jid: "abc" }); await requests.setJSON("req:abc", { at: ago(95), confirmedAt: ago(90) });
+await outbox.setJSON("msg:1", { createdAt: ago(20) });
+await outbox.setJSON("sender:lastPoll", { at: ago(40) });
+p = await H.check({ requests, outbox }, now);
+ok(["engine-stale", "queue-old", "sender-stale"].every((id) => p.some((x) => x.id === id)), "stale engine, old queue and stopped sender are all flagged");
+ok((await H.due(hs, p, now)).length === 3, "first check alerts");
+ok((await H.due(hs, p, now + 60e3)).length === 0, "same problems don't re-alert within 6 hours");
+ok((await H.due(hs, p, now + 7 * 3600e3)).length === 3, "they re-alert after 6 hours");
+console.log(`health: ${pass} passed`); await srv.stop(); process.exit(0);
