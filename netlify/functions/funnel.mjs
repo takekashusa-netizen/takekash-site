@@ -2,16 +2,18 @@
 import { getStore } from "@netlify/blobs";
 import funnel from "../../lib/seo/funnel.cjs";
 import access from "../../lib/seo/access.cjs";
+import RL from "../../lib/ratelimit.cjs";
 const ORIGINS = new Set(["https://takekash.com", "https://www.takekash.com", "https://takekash.netlify.app", ...(process.env.SITE_ORIGINS || "").split(",").map((s) => s.trim()).filter(Boolean)]);
 const cors = (req) => { const o = req.headers.get("origin"); return ORIGINS.has(o) ? { "Access-Control-Allow-Origin": o, "Access-Control-Allow-Headers": "Content-Type, Authorization", Vary: "Origin" } : {}; };
 const json = (req, s, b) => new Response(JSON.stringify(b), { status: s, headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...cors(req) } });
 const PUBLIC = new Set(["unlock_click", "kit_made", "page_seo", "page_kit", "page_home", "page_ebooks"]);
 
-export default async (req) => {
+export default async (req, context) => {
   await access.ensureSigningSecret(getStore("keys"));
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(req) });
   const store = getStore("funnel");
   if (req.method === "POST") {
+    if (!(await RL.hit(getStore("ratelimit"), "track", RL.ipOf(req, context), 120, 3600e3))) return json(req, 429, { error: "slow down" });
     let ev; try { ev = (await req.json()).event; } catch { return json(req, 400, { error: "bad request" }); }
     if (!PUBLIC.has(ev)) return json(req, 400, { error: "unknown event" });
     await funnel.track(store, ev);

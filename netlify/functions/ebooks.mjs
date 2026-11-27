@@ -5,6 +5,7 @@
 //   POST /api/ebook-upload?sku=..  (owner)   -> stores a PDF encrypted at rest; header x-upload-code
 //   GET  /api/ebook-status (owner)           -> which packs are uploaded
 import { getStore } from "@netlify/blobs";
+import RL from "../../lib/ratelimit.cjs";
 import access from "../../lib/seo/access.cjs";
 import crypto from "crypto";
 import E from "../../lib/ebooks.cjs";
@@ -33,12 +34,13 @@ function uploadCodeOk(req) {
   return want.length >= 24 && got.length === want.length && crypto.timingSafeEqual(Buffer.from(got), Buffer.from(want));
 }
 
-export default async (req) => {
+export default async (req, context) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(req) });
   await access.ensureSigningSecret(getStore("keys"));   // self-made key when no env secret is set
   const url = new URL(req.url), path = url.pathname, files = getStore("ebook-files");
 
   if (path === "/api/ebook-checkout" && req.method === "POST") {
+    if (!(await RL.hit(getStore("ratelimit"), "ebook-checkout", RL.ipOf(req, context), 20, 3600e3))) return json(req, 429, { error: "Too many checkouts started. Try again in a little while." });
     let sku; try { ({ sku } = await req.json()); } catch { return json(req, 400, { error: "Invalid request" }); }
     const p = E.CATALOG[sku];
     if (!p) return json(req, 400, { error: "Unknown ebook" });

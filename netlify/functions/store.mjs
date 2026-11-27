@@ -6,6 +6,7 @@
 // POST /api/store/link       { session_id, t, url }       -> queues the clip job on the free engine
 // POST /api/billing-portal   (Bearer portal sign-in token) -> { url }  Stripe customer portal for that email
 import { getStore } from "@netlify/blobs";
+import RL from "../../lib/ratelimit.cjs";
 import crypto from "crypto";
 import access from "../../lib/seo/access.cjs";
 import S from "../../lib/store.cjs";
@@ -41,7 +42,7 @@ async function paidOrder(orders, sid) {
   return { ...o, fresh: true };
 }
 
-export default async (req) => {
+export default async (req, context) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(req) });
   if (req.method !== "POST") return json(req, 405, { error: "Method not allowed" });
   await access.ensureSigningSecret(getStore("keys"));
@@ -49,6 +50,7 @@ export default async (req) => {
   let b = {}; try { b = await req.json(); } catch { if (path !== "/api/billing-portal") return json(req, 400, { error: "Invalid request" }); }
 
   if (path === "/api/store/checkout") {
+    if (!(await RL.hit(getStore("ratelimit"), "store-checkout", RL.ipOf(req, context), 20, 3600e3))) return json(req, 429, { error: "Too many checkouts started. Try again in a little while." });
     const p = S.PACKAGES[b.sku];
     if (!p) return json(req, 400, { error: "Unknown package" });
     const form = new URLSearchParams({
@@ -63,6 +65,7 @@ export default async (req) => {
   }
 
   if (path === "/api/store/claim") {
+    if (!(await RL.hit(getStore("ratelimit"), "store-claim", RL.ipOf(req, context), 60, 3600e3))) return json(req, 429, { error: "Too many tries. Wait a few minutes and refresh." });
     const sid = String(b.session_id || "");
     if (!S.SESSION_RE.test(sid)) return json(req, 400, { error: "Invalid order link" });
     let o; try { o = await paidOrder(orders, sid); } catch (e) { console.error("claim", e.message); return json(req, 502, { error: "We couldn't check that payment right now. Refresh in a minute." }); }
