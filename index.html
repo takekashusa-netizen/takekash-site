@@ -129,6 +129,9 @@
     .footer-links{display:flex;gap:24px;justify-content:center;margin-bottom:16px;flex-wrap:wrap}
     .glow-divider{height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.2;margin:0}
   </style>
+<!-- MailerLite Universal -->
+<script>(function(w,d,e,u,f,l,n){w[f]=w[f]||function(){(w[f].q=w[f].q||[]).push(arguments);},l=d.createElement(e),l.async=1,l.src=u,n=d.getElementsByTagName(e)[0],n.parentNode.insertBefore(l,n);})(window,document,'script','https://assets.mailerlite.com/js/universal.js','ml');ml('account','2596717');</script>
+<!-- End MailerLite Universal -->
 </head>
 <body>
 
@@ -177,12 +180,7 @@
     <div class="section-label">CYBER WEEK · FREE FOR BRANDS &amp; SHOPS</div>
     <h2 class="section-title">Your first ad is on us.</h2>
     <p style="max-width:640px;margin:0 auto 18px;color:var(--muted);text-align:center">A 15–30s vertical ad for TikTok, Reels and Shorts, with motion, voice-over, captions and the hashtags people actually search. Free, no card. You get it in about 48 hours.</p>
-    <form class="url-form stack" id="ad-form" onsubmit="return adTrial(event)" style="max-width:520px;margin:0 auto">
-      <input type="text" id="ad-name" placeholder="Brand or shop name" required/>
-      <input type="email" id="ad-email" placeholder="Email (we send the ad here)" required autocomplete="email"/>
-      <input type="text" name="website" id="ad-hp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true"/>
-      <button class="btn-gold" type="submit" id="ad-btn">Claim my free ad</button>
-    </form>
+    <div class="ml-embedded" data-form="3G0glv" style="max-width:520px;margin:0 auto"></div>
     <p class="form-note" id="ad-msg" style="text-align:center">Streamer? Your first 3 clips are free too ↑</p>
   </section>
   <div class="glow-divider"></div>
@@ -392,10 +390,8 @@ function goHome(anchor){
   setTimeout(()=>{const el=document.getElementById(anchor);if(el)el.scrollIntoView({behavior:'smooth'});if(anchor==='get-clips')document.getElementById('hero-url').focus();},60);
   return false;
 }
-async function adTrial(e){e.preventDefault();var b=document.getElementById('ad-btn'),m=document.getElementById('ad-msg');b.disabled=true;b.textContent='Reserving…';
-try{var r=await fetch('/api/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({list:'free-ad-trial',source:'home-free-ad',name:document.getElementById('ad-name').value,email:document.getElementById('ad-email').value,website:document.getElementById('ad-hp').value})});var j=await r.json();
-m.textContent=j.message||j.error||'Check your inbox.';if(r.ok){b.textContent='Reserved ✓';fetch('/api/track',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({event:'ad_trial_signup'}),keepalive:true}).catch(function(){});}else{b.disabled=false;b.textContent='Claim my free ad';}}
-catch(x){m.textContent='Network hiccup, try again.';b.disabled=false;b.textContent='Claim my free ad';}return false;}
+// MailerLite "TakeKash Website Leads Form" -> group Website Leads; count each signup in the funnel
+window.ml_webform_success_197172905768912745=function(){try{fetch('/api/track',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({event:'ad_trial_signup'}),keepalive:true});}catch(x){}};
 async function requestClips(e){
   e.preventDefault();
   const btn=document.getElementById('clip-btn'),msg=document.getElementById('clip-msg');
