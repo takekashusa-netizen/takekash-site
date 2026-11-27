@@ -8,7 +8,8 @@ setEnvironmentContext({ siteID: "s", token: "t", edgeURL: `http://localhost:${po
 const H = (await import("../lib/health.cjs")).default;
 const requests = getStore("clip-requests"), outbox = getStore("mail-outbox"), hs = getStore("health"), now = Date.now(), ago = (m) => new Date(now - m * 60e3).toISOString();
 let p = await H.check({ requests, outbox }, now);
-ok(p.some((x) => x.id === "engine-never"), "engine that never polled is flagged");
+ok(p.some((x) => x.id === "engine-never" && x.severity === "info"), "engine that never polled is shown (info while the queue is empty)");
+ok((await H.due(getStore("health-quiet"), p, now)).length === 0, "a quiet engine with nothing waiting sends no email");
 await requests.setJSON("engine:lastPoll", { at: ago(3) });
 await outbox.setJSON("sender:lastPoll", { at: ago(1) });
 p = await H.check({ requests, outbox }, now);
