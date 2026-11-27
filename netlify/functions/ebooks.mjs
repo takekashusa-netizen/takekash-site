@@ -5,6 +5,7 @@
 //   POST /api/ebook-upload?sku=..  (owner)   -> stores a PDF encrypted at rest; header x-upload-code
 //   GET  /api/ebook-status (owner)           -> which packs are uploaded
 import { getStore } from "@netlify/blobs";
+import access from "../../lib/seo/access.cjs";
 import crypto from "crypto";
 import E from "../../lib/ebooks.cjs";
 
@@ -34,6 +35,7 @@ function uploadCodeOk(req) {
 
 export default async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(req) });
+  await access.ensureSigningSecret(getStore("keys"));   // self-made key when no env secret is set
   const url = new URL(req.url), path = url.pathname, files = getStore("ebook-files");
 
   if (path === "/api/ebook-checkout" && req.method === "POST") {

@@ -1,6 +1,7 @@
 // POST /api/clip-request { url, email }  — done-for-you clip order from the homepage.
 // Saves the request (Netlify Blobs "clip-requests"), emails the owner the order, and confirms to the customer.
 import { getStore } from "@netlify/blobs";
+import access from "../../lib/seo/access.cjs";
 import T from "../../lib/timeline.cjs";
 import portal from "../../lib/portal.cjs";
 import mail from "../../lib/mail.cjs";
@@ -26,6 +27,7 @@ const sendEmail = (env, to, subject, html, replyTo) => mail.send(env, { to, subj
 export default async (req, context) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(req) });
   if (req.method !== "POST") return json(req, 405, { error: "Method not allowed" });
+  await access.ensureSigningSecret(getStore("keys"));   // self-made key when no env secret is set
   let url, email;
   try { ({ url, email } = await req.json()); } catch { return json(req, 400, { error: "Invalid request." }); }
   email = String(email || "").trim().toLowerCase();
