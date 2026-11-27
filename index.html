@@ -391,7 +391,15 @@ function goHome(anchor){
   return false;
 }
 // MailerLite "TakeKash Website Leads Form" -> group Website Leads; count each signup in the funnel
-window.ml_webform_success_197172905768912745=function(){try{fetch('/api/track',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({event:'ad_trial_signup'}),keepalive:true});}catch(x){}};
+// MailerLite "TakeKash Website Leads Form" -> group Website Leads (lead kept in MailerLite).
+// Until takekash.com is an authenticated MailerLite sender, the welcome emails go out through the site's own
+// Gmail sender: the same signup is also added to the site list "free-ad-trial" (3-email sequence).
+var _adLead='';
+document.addEventListener('submit',function(e){var f=e.target;if(f&&f.closest&&f.closest('.ml-embedded')){var i=f.querySelector('input[type=email],input[name="fields[email]"]');if(i)_adLead=i.value.trim();}},true);
+window.ml_webform_success_197172905768912745=function(){try{
+fetch('/api/track',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({event:'ad_trial_signup'}),keepalive:true});
+if(_adLead)fetch('/api/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({list:'free-ad-trial',source:'home-free-ad-ml',email:_adLead}),keepalive:true});
+}catch(x){}};
 async function requestClips(e){
   e.preventDefault();
   const btn=document.getElementById('clip-btn'),msg=document.getElementById('clip-msg');
