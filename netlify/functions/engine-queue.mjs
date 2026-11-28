@@ -44,11 +44,13 @@ export default async (req) => {
 
   const { privateKey } = await D.siteKey(getStore("keys"));   // tickets are signed at claim time, so they're always fresh
   const tickets = [];
-  for (const { key } of (await store.list({ prefix: "queue:" })).blobs) {
+  const waiting = [];
+  for (const { key } of (await store.list({ prefix: "queue:" })).blobs) { const job = await store.get(key, { type: "json" }); if (job) waiting.push({ key, job }); }
+  const rank = (j) => (j.plan && j.plan !== "free" ? 0 : 1);           // paying customers first, then oldest
+  waiting.sort((x, y) => rank(x.job) - rank(y.job) || String(x.job.at || "").localeCompare(String(y.job.at || "")));
+  for (const { key, job } of waiting) {
     if (tickets.length >= BATCH) break;
     const id = key.slice("queue:".length);
-    const job = await store.get(key, { type: "json" });
-    if (!job) continue;
     const lease = await store.setJSON(`running:${id}`, { at: now, run: claims.run_id, tries: job.tries || 1, job }, { onlyIfNew: true });
     if (lease && lease.modified === false) continue;   // another run took it
     await store.delete(key);

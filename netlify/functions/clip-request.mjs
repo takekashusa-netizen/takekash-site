@@ -20,7 +20,8 @@ const ORIGINS = new Set(["https://takekash.com", "https://www.takekash.com", "ht
 const cors = (req) => { const o = req.headers.get("origin"); return ORIGINS.has(o) ? { "Access-Control-Allow-Origin": o, "Access-Control-Allow-Headers": "Content-Type", Vary: "Origin" } : {}; };
 const json = (req, status, body) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...cors(req) } });
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const VIDEO_HOSTS = /^(www\.|m\.|clips\.)?(twitch\.tv|kick\.com|youtube\.com|youtu\.be)$/i;
+// streams + file shares the cloud engine can fetch (Drive/Dropbox = the customer's own file, no Mac needed)
+const VIDEO_HOSTS = /^(www\.|m\.|clips\.)?(twitch\.tv|kick\.com|youtube\.com|youtu\.be|drive\.google\.com|dropbox\.com|dl\.dropboxusercontent\.com)$/i;
 
 const sendEmail = (env, to, subject, html, replyTo) => mail.send(env, { to, subject, html, replyTo });   // one mail layer
 
@@ -34,7 +35,7 @@ export default async (req, context) => {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || email.length > 254) return json(req, 400, { error: "Enter a valid email." });
   let host;
   try { const u = new URL(String(url || "").trim()); host = u.hostname; url = u.toString(); } catch { return json(req, 400, { error: "Paste a full stream link (starting with https://)." }); }
-  if (!VIDEO_HOSTS.test(host)) return json(req, 400, { error: "Use a Twitch, Kick or YouTube link." });
+  if (!VIDEO_HOSTS.test(host)) return json(req, 400, { error: "Use a Twitch, Kick, YouTube, Google Drive or Dropbox link." });
 
   const env = process.env;
   const store = getStore("clip-requests");

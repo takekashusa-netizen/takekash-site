@@ -34,4 +34,7 @@ got = await (await call(access.signToken("takekashusa@gmail.com", process.env)))
 ok(got.tickets.length === 0, "a second poll gets nothing (no double work)");
 x = await run("b".repeat(20), "https://www.twitch.tv/videos/123", "other@x.com");
 ok(x.d.status === "processing" && x.q, "Twitch job still goes to the cloud engine");
+x = await run("c".repeat(20), "https://drive.google.com/file/d/abc123/view", "drive@x.com");
+ok(x.d.status === "processing" && x.q && !x.rec.ownerMachine, "Google Drive file goes straight to the cloud engine (no Mac)");
+ok(JSON.parse(JSON.stringify(await reqs.get(`queue:${"c".repeat(20)}`, { type: "json" }))).plan === "free", "queued job records its plan (paid jobs are claimed first)");
 console.log(`youtube-routing: ${pass} passed`); await srv.stop(); process.exit(0);

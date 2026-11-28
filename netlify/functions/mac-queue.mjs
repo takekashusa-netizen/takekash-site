@@ -20,11 +20,13 @@ export default async (req) => {
   await store.setJSON("mac:lastPoll", { at: new Date(now).toISOString() });   // worker health for the Admin Hub
   const { privateKey } = await D.siteKey(getStore("keys"));
   const tickets = [];
-  for (const { key } of (await store.list({ prefix: "macqueue:" })).blobs) {
+  const waiting = [];
+  for (const { key } of (await store.list({ prefix: "macqueue:" })).blobs) { const job = await store.get(key, { type: "json" }); if (job) waiting.push({ key, job }); }
+  const rank = (j) => (j.plan && j.plan !== "free" ? 0 : 1);           // paying customers first, then oldest
+  waiting.sort((x, y) => rank(x.job) - rank(y.job) || String(x.job.at || "").localeCompare(String(y.job.at || "")));
+  for (const { key, job } of waiting) {
     if (tickets.length >= BATCH) break;
     const id = key.slice("macqueue:".length);
-    const job = await store.get(key, { type: "json" });
-    if (!job) continue;
     const lease = await store.setJSON(`running:${id}`, { at: now, run: "mac", mac: true, tries: job.tries || 1, job }, { onlyIfNew: true });
     if (lease && lease.modified === false) continue;
     await store.delete(key);

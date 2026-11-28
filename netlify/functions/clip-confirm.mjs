@@ -60,9 +60,9 @@ export default async (req) => {
       r.cbk = D.newCallbackKey(); r.ownerMachine = true;
       T.step(r, "queued", "YouTube link: waiting for the owner's Mac worker");
       r.status = "processing"; await store.setJSON(`req:${id}`, r);
-      await store.setJSON(`macqueue:${id}`, { jid: id, url: r.url, clips: res.clips, cbk: r.cbk, at: new Date().toISOString() });
+      await store.setJSON(`macqueue:${id}`, { jid: id, url: r.url, clips: res.clips, cbk: r.cbk, plan, at: new Date().toISOString() });
       try { await sendEmail(env, access.ownerEmail(env), `YouTube clip job queued for your Mac: ${r.email}`, `<p>${esc(r.email)} confirmed ${res.clips} clip(s) from <a href="${esc(r.url)}">${esc(r.url)}</a>.</p><p>Your Mac worker picks this up automatically within a few minutes when the Mac is on. If it isn't set up yet, make the clips by hand.</p>`); } catch {}
-      return json(req, 200, { ok: true, status: "processing", clips: res.clips, message: MESSAGES.processing });
+      return json(req, 200, { ok: true, status: "processing", clips: res.clips, message: MESSAGES.processing + " Tip: YouTube links take longer; for the fastest clips next time, share the video file as a Google Drive or Dropbox link." });
     }
     if (process.env.CLIP_ENGINE === "railway") {          // legacy paid engine, kept only as an escape hatch
       const { privateKey } = await D.siteKey(getStore("keys"));
@@ -73,7 +73,7 @@ export default async (req) => {
     } else {                                               // free engine: GitHub Actions pulls from this queue
       r.cbk = D.newCallbackKey(); await store.setJSON(`req:${id}`, r);   // stored first so the callback can be verified
       T.step(r, "queued"); await store.setJSON(`req:${id}`, r);
-      await store.setJSON(`queue:${id}`, { jid: id, url: r.url, clips: res.clips, cbk: r.cbk });
+      await store.setJSON(`queue:${id}`, { jid: id, url: r.url, clips: res.clips, cbk: r.cbk, plan, at: new Date().toISOString() });
       sent = true;
       if (D.useGithubEngine()) await D.dispatchJob({}).catch((e) => console.error("engine wake-up failed (queue still runs)", e));
     }
