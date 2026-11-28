@@ -42,6 +42,10 @@
     @media(max-width:760px){.how-grid{grid-template-columns:1fr}}
     .proof-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:900px;margin:0 auto}.proof-grid iframe{width:100%;aspect-ratio:9/16;border:1px solid var(--border);border-radius:14px;background:#000}
     @media(max-width:760px){.proof-grid{grid-template-columns:1fr;max-width:340px}}
+    .src-tabs{display:flex;gap:6px;margin-bottom:8px}.src-tab{flex:1;background:var(--bg3);color:var(--muted);border:1px solid var(--border);border-radius:var(--r);padding:10px;font-weight:600;cursor:pointer}
+    .src-tab.on{color:#000;background:var(--gold);border-color:var(--gold)}.src-tab small{font-weight:700;opacity:.7;margin-left:4px}
+    .file-drop{display:block;border:1px dashed var(--gold);border-radius:var(--r);padding:16px;text-align:center;color:var(--text);cursor:pointer;background:rgba(245,166,35,.05)}
+    .file-drop input{display:none}.up-bar{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;margin-top:8px}#up-fill{height:100%;width:0;background:var(--gold);transition:width .2s}
     .faq-home{max-width:760px;margin:0 auto;padding:60px 24px}
     .faq-home details{border-top:1px solid var(--border);padding:16px 0}.faq-home summary{cursor:pointer;font-weight:600;font-size:16px}
     .faq-home p{color:var(--muted);margin-top:8px;line-height:1.6}
@@ -171,13 +175,16 @@
     <div class="hero-content">
       <div class="hero-badge">FOR STREAMERS, PODCASTS &amp; YOUTUBERS</div>
       <h1>Your long videos, <em>cut into short, high-impact clips.</em></h1>
-      <p>Send us a stream, podcast or YouTube link. We find the moments worth watching, the plays, reactions and quotable lines, cut the dead time, and send back vertical clips with captions, titles and hashtags for TikTok, Reels and Shorts.</p>
+      <p>Upload your video or send a link. We find the moments worth watching, the plays, reactions and quotable lines, cut the dead time, and send back vertical clips with captions, titles and hashtags for TikTok, Reels and Shorts.</p>
       <form class="url-form stack" id="clip-form" onsubmit="return requestClips(event)">
-        <input type="url" placeholder="Stream, YouTube, Google Drive or Dropbox link" id="hero-url" required/>
+        <div class="src-tabs" role="tablist" id="src-tabs" hidden><button type="button" class="src-tab on" data-src="file">Upload a file <small>fastest</small></button><button type="button" class="src-tab" data-src="link">Paste a link</button></div>
+        <label class="file-drop" id="file-drop" hidden><input type="file" id="hero-file" accept="video/mp4,video/quicktime,video/x-matroska,video/webm,video/x-m4v"/><span id="file-label">Tap to choose your video (MP4, MOV, up to 5 GB)</span></label>
+        <div class="up-bar" id="up-bar" hidden><div id="up-fill"></div></div>
+        <input type="url" placeholder="Stream, YouTube, Google Drive or Dropbox link" id="hero-url"/>
         <input type="email" placeholder="Your email (we send the clips here)" id="hero-email" required autocomplete="email"/>
         <button class="btn-gold" type="submit" id="clip-btn">Get my clips</button>
       </form>
-      <p class="form-note" id="clip-msg">First 3 clips free · Confirm by email · Clips delivered automatically</p>
+      <p class="form-note" id="clip-msg">First 3 clips free · Uploads start clipping the moment you confirm · Clips delivered by email</p>
     </div>
   </section>
   <div class="glow-divider"></div>
@@ -196,7 +203,7 @@
     <div class="section-label reveal">HOW IT WORKS</div>
     <h2 class="section-title reveal reveal-delay-1">Three steps. You only do the first one.</h2>
     <div class="how-grid">
-      <div class="how-step reveal reveal-delay-1"><div class="step-num">1</div><h3>Send your link</h3><p>Paste a Twitch, Kick or YouTube link (stream, podcast or video, 10 minutes or longer) and your email.</p></div>
+      <div class="how-step reveal reveal-delay-1"><div class="step-num">1</div><h3>Send your video</h3><p>Upload the file (fastest) or paste a Twitch, Kick, YouTube, Drive or Dropbox link, 10 minutes or longer, plus your email.</p></div>
       <div class="how-step reveal reveal-delay-2"><div class="step-num">2</div><h3>We find the moments</h3><p>We watch for the game you're playing, the big plays, the reactions and the "clip that" moments, and skip menus, loading screens and AFK time.</p></div>
       <div class="how-step reveal reveal-delay-3"><div class="step-num">3</div><h3>You post</h3><p>You get 9:16 clips with word-by-word captions, plus a title, caption and hashtags for each platform. Download and post.</p></div>
     </div>
@@ -393,16 +400,38 @@ function goHome(anchor){
   setTimeout(()=>{const el=document.getElementById(anchor);if(el)el.scrollIntoView({behavior:'smooth'});if(anchor==='get-clips')document.getElementById('hero-url').focus();},60);
   return false;
 }
+let _src='link';
+fetch('/api/upload-start').then(function(r){return r.json();}).then(function(d){if(!d.enabled)return;_src='file';
+  document.getElementById('src-tabs').hidden=false;document.getElementById('file-drop').hidden=false;document.getElementById('hero-url').hidden=true;}).catch(function(){});
+document.addEventListener('click',function(e){var t=e.target.closest&&e.target.closest('.src-tab');if(!t)return;_src=t.dataset.src;
+  document.querySelectorAll('.src-tab').forEach(function(b){b.classList.toggle('on',b===t);});
+  document.getElementById('file-drop').hidden=_src!=='file';document.getElementById('hero-url').hidden=_src!=='link';});
+document.addEventListener('change',function(e){if(e.target.id==='hero-file'){var f=e.target.files[0];document.getElementById('file-label').textContent=f?f.name+' ('+Math.round(f.size/1048576)+' MB)':'Tap to choose your video';}});
+function putFile(url,file,onp){return new Promise(function(res,rej){var x=new XMLHttpRequest();x.open('PUT',url);
+  x.upload.onprogress=function(ev){if(ev.lengthComputable)onp(ev.loaded/ev.total);};x.onload=function(){x.status<300?res():rej(new Error('Upload failed ('+x.status+').'));};
+  x.onerror=function(){rej(new Error('Upload failed. Check your connection.'));};x.send(file);});}
 async function requestClips(e){
   e.preventDefault();
-  const btn=document.getElementById('clip-btn'),msg=document.getElementById('clip-msg');
-  const url=document.getElementById('hero-url').value.trim(),email=document.getElementById('hero-email').value.trim();
-  btn.disabled=true;btn.textContent='Sending...';msg.className='form-note';
+  const btn=document.getElementById('clip-btn'),msg=document.getElementById('clip-msg'),email=document.getElementById('hero-email').value.trim();
+  btn.disabled=true;msg.className='form-note';
   try{
-    const r=await fetch('/api/clip-request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,email})});
+    let body;
+    if(_src==='file'){
+      const f=document.getElementById('hero-file').files[0];if(!f)throw new Error('Choose your video file first.');
+      btn.textContent='Starting upload...';
+      const s=await fetch('/api/upload-start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:f.name,size:f.size,type:f.type||'video/mp4'})});
+      const sd=await s.json();if(!s.ok)throw new Error(sd.error||'Upload unavailable.');
+      const bar=document.getElementById('up-bar'),fill=document.getElementById('up-fill');bar.hidden=false;
+      await putFile(sd.putUrl,f,function(p){fill.style.width=Math.round(p*100)+'%';btn.textContent='Uploading '+Math.round(p*100)+'%';});
+      body={url:'upload://'+sd.key,ut:sd.ut,email:email};
+    }else{
+      const url=document.getElementById('hero-url').value.trim();if(!url)throw new Error('Paste your link first.');
+      body={url:url,email:email};btn.textContent='Sending...';
+    }
+    const r=await fetch('/api/clip-request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const d=await r.json();
     if(!r.ok)throw new Error(d.error||'Something went wrong');
-    msg.className='form-note ok';msg.textContent=d.message;document.getElementById('clip-form').reset();
+    msg.className='form-note ok';msg.textContent=d.message;document.getElementById('clip-form').reset();document.getElementById('file-label').textContent='Tap to choose your video';
   }catch(err){msg.className='form-note err';msg.textContent=err.message+' Try again.';}
   btn.disabled=false;btn.textContent='Get my clips';
   return false;

@@ -43,10 +43,10 @@ export default async (req) => {
   try {
     if (r.status === "delivered") {
       await sendEmail(env, r.email, `Your ${delivered} clip${delivered === 1 ? "" : "s"} are ready`,
-        `<p>Your clips from <a href="${esc(r.url)}">this stream</a> are ready:</p><p><a href="${esc(p.download)}"><b>Download your clips →</b></a></p><p>The link works for 7 days. Need titles, captions and hashtags? Use <a href="${process.env.SITE_URL || "https://takekash.netlify.app"}/seo">SEO Studio</a> or the <a href="${process.env.SITE_URL || "https://takekash.netlify.app"}/kit">Upload Kit</a>.</p><p>— TakeKash</p>`);
+        `<p>Your clips from ${String(r.url).startsWith("upload://") ? "your video" : `<a href="${esc(r.url)}">this stream</a>`} are ready:</p><p><a href="${esc(p.download)}"><b>Download your clips →</b></a></p><p>The link works for 7 days. Need titles, captions and hashtags? Use <a href="${process.env.SITE_URL || "https://takekash.netlify.app"}/seo">SEO Studio</a> or the <a href="${process.env.SITE_URL || "https://takekash.netlify.app"}/kit">Upload Kit</a>.</p><p>— TakeKash</p>`);
     } else {
       await sendEmail(env, r.email, "We couldn't make clips from that stream",
-        `<p>We couldn't find clip-worthy moments in <a href="${esc(r.url)}">this stream</a>, or it couldn't be downloaded. Nothing was taken from your clip allowance.</p><p>Reply to this email and we'll take a look by hand.</p><p>— TakeKash</p>`);
+        `<p>We couldn't find clip-worthy moments in ${String(r.url).startsWith("upload://") ? "your video" : `<a href="${esc(r.url)}">this stream</a>`}, or it couldn't be downloaded. Nothing was taken from your clip allowance.</p><p>Reply to this email and we'll take a look by hand.</p><p>— TakeKash</p>`);
       await sendEmail(env, access.ownerEmail(env), "Clip job failed", `<p>Request ${esc(p.jid)} for ${esc(r.email)} failed. Stream: ${esc(r.url)}</p>`);
     }
   } catch (e) { console.error("delivery email failed", e); return json(500, { error: "email failed" }); }   // 500 => engine retries

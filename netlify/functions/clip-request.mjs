@@ -16,6 +16,7 @@ export function confirmToken(id) {
   return crypto.createHmac("sha256", key).update(String(id)).digest("base64url").slice(0, 32);
 }
 
+import { validUpload } from "./upload-start.mjs";
 const ORIGINS = new Set(["https://takekash.com", "https://www.takekash.com", "https://takekash.netlify.app", ...(process.env.SITE_ORIGINS || "").split(",").map((s) => s.trim()).filter(Boolean)]);
 const cors = (req) => { const o = req.headers.get("origin"); return ORIGINS.has(o) ? { "Access-Control-Allow-Origin": o, "Access-Control-Allow-Headers": "Content-Type", Vary: "Origin" } : {}; };
 const json = (req, status, body) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...cors(req) } });
@@ -29,13 +30,19 @@ export default async (req, context) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(req) });
   if (req.method !== "POST") return json(req, 405, { error: "Method not allowed" });
   await access.ensureSigningSecret(getStore("keys"));   // self-made key when no env secret is set
-  let url, email;
-  try { ({ url, email } = await req.json()); } catch { return json(req, 400, { error: "Invalid request." }); }
+  let url, email, ut;
+  try { ({ url, email, ut } = await req.json()); } catch { return json(req, 400, { error: "Invalid request." }); }
   email = String(email || "").trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || email.length > 254) return json(req, 400, { error: "Enter a valid email." });
-  let host;
-  try { const u = new URL(String(url || "").trim()); host = u.hostname; url = u.toString(); } catch { return json(req, 400, { error: "Paste a full stream link (starting with https://)." }); }
-  if (!VIDEO_HOSTS.test(host)) return json(req, 400, { error: "Use a Twitch, Kick, YouTube, Google Drive or Dropbox link." });
+  if (String(url || "").startsWith("upload://")) {           // their own uploaded file (instant service)
+    const key = validUpload(url, ut);
+    if (!key) return json(req, 400, { error: "That upload expired. Upload the video again." });
+    url = `upload://${key}`;
+  } else {
+    let host;
+    try { const u = new URL(String(url || "").trim()); host = u.hostname; url = u.toString(); } catch { return json(req, 400, { error: "Paste a full stream link (starting with https://)." }); }
+    if (!VIDEO_HOSTS.test(host)) return json(req, 400, { error: "Use a Twitch, Kick, YouTube, Google Drive or Dropbox link, or upload the file." });
+  }
 
   const env = process.env;
   const store = getStore("clip-requests");
@@ -59,7 +66,7 @@ export default async (req, context) => {
   catch (e) { console.error(e); return json(req, 503, { error: "Requests are paused for a moment." }); }
   try {
     await sendEmail(env, email, "Confirm your clips from TakeKash",
-      `<p>Tap to start your clips from:</p><p><a href="${esc(url)}">${esc(url)}</a></p><p><a href="${link}"><b>Confirm and start my clips →</b></a></p><p>Didn't request this? Ignore this email and nothing happens.</p><p>— TakeKash</p>`,
+      `<p>Tap to start your clips from:</p><p>${url.startsWith("upload://") ? `your uploaded file <b>${esc(url.split("/").pop())}</b>` : `<a href="${esc(url)}">${esc(url)}</a>`}</p><p><a href="${link}"><b>Confirm and start my clips →</b></a></p><p>Didn't request this? Ignore this email and nothing happens.</p><p>— TakeKash</p>`,
       env.REPLY_TO || access.ownerEmail(env));
     const rec = await store.get(`req:${id}`, { type: "json" }); if (rec) await store.setJSON(`req:${id}`, T.step(rec, "confirm_email"));
   } catch (e) {
