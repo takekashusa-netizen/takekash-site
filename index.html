@@ -263,15 +263,10 @@
 <!-- COMMAND CENTER -->
 <div id="page-command" class="page">
   <div class="page-content">
-    <div class="section-label">COMMAND CENTER</div><h1>Tell TakeKash what to do.</h1><p class="subtitle">Natural language commands. The AI handles the rest.</p>
-    <div class="cmd-interface">
-      <div class="cmd-header"><div class="cmd-dot green"></div> TAKEKASH COMMAND CENTER — GtaxZombies</div>
-      <div class="cmd-messages" id="cmd-messages">
-        <div class="msg"><div class="msg-label">TAKEKASH</div><div class="msg-bubble">What do you need? I can find clips, generate SEO metadata, check job status, approve clips for publishing, or build a posting schedule.</div></div>
-        <div class="msg user"><div class="msg-label">YOU</div><div class="msg-bubble">Find my best 5 Apex clips from this week</div></div>
-        <div class="msg"><div class="msg-label">TAKEKASH</div><div class="msg-bubble">Found 14 candidates. Top 5 by SEO score:<br/><br/>1. <strong>interview2_window12</strong> — SEO 96/100 · TikTok ready<br/>2. <strong>gtaxlong1_window03</strong> — SEO 94/100 · Instagram ready<br/>3. <strong>interview3_window07</strong> — SEO 93/100 · TikTok ready<br/>4. <strong>gtaxlong1_window08</strong> — SEO 92/100 · pending QC<br/>5. <strong>interview2_window24</strong> — SEO 91/100 · TikTok ready<br/><br/>Approve and schedule all 5?</div></div>
-      </div>
-      <div class="cmd-input-row"><input class="cmd-input" id="cmd-input" placeholder="Ask TakeKash anything..." onkeydown="if(event.key==='Enter')sendCmd()"/><button class="btn-gold" onclick="sendCmd()">Send</button></div>
+    <div class="section-label">COMMAND CENTER</div><h1>Run TakeKash from one screen.</h1>
+    <div class="cmd-interface" style="padding:28px;text-align:center">
+      <p style="color:var(--muted);margin-bottom:18px">Every TakeKash tool in one place: clip jobs, stats, social calendar, email, outreach and the in-house studio. Owner sign-in required.</p>
+      <a class="btn-gold" href="/admin/hub" style="display:inline-block;text-decoration:none">Open the Command Center</a>
     </div>
   </div>
   <footer><div class="footer-links"><a href="#" onclick="showPage('home')">Home</a><a href="#get-clips" onclick="goHome('get-clips')">Get my clips</a><a href="/seo">SEO Studio</a><a href="#" onclick="showPage('pricing')">Pricing</a></div><p>© 2026 TakeKash.</p></footer>

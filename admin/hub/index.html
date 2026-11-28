@@ -33,6 +33,10 @@ label{display:block;font-size:11px;font-weight:600;color:var(--mute);text-transf
 .dlg{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center;z-index:9}
 .dlg .card{width:100%;max-width:640px;max-height:88vh;overflow:auto;margin:0;border-radius:16px 16px 0 0}
 @media(min-width:700px){.dlg{align-items:center}.dlg .card{border-radius:16px}}
+.cc{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.cc .card{margin:0}.cc h3{margin:0 0 4px;font-size:15px}.cc p{margin:0 0 10px;font-size:13px}
+.cmd{display:block;background:#0b0f0c;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:12px ui-monospace,Menlo,monospace;white-space:pre-wrap;word-break:break-all;cursor:pointer;margin-top:6px}
+.cmd:active{border-color:var(--kash)}
 </style></head><body><div class="wrap">
 <header><a class="logo" href="/admin/hub">Take<b>Kash</b><span>Admin Hub</span></a><div class="row"><button class="btn ghost small" id="refresh" hidden>Refresh</button><button class="btn ghost small" id="out" hidden>Sign out</button></div></header>
 
@@ -45,11 +49,11 @@ label{display:block;font-size:11px;font-weight:600;color:var(--mute);text-transf
 
 <section id="app" hidden>
   <nav class="tabs" role="tablist">
-    <button data-t="overview" aria-selected="true">Overview</button><button data-t="jobs">Clip jobs</button>
+    <button data-t="command" aria-selected="true">Command Center</button><button data-t="overview">Overview</button><button data-t="jobs">Clip jobs</button>
     <button data-t="inbox">Inbox</button><button data-t="contacts">Customers</button><button data-t="leads">Outreach</button>
     <button data-t="orders">Orders</button><button data-t="streams">Streams</button><button data-t="stats">Stats</button><button data-t="social">Social</button><button data-t="email">Email</button><button data-t="system">System</button>
   </nav>
-  <div id="v-overview"></div><div id="v-jobs" hidden></div><div id="v-inbox" hidden></div><div id="v-contacts" hidden></div><div id="v-leads" hidden></div><div id="v-orders" hidden></div><div id="v-streams" hidden></div><div id="v-stats" hidden></div><div id="v-social" hidden></div><div id="v-email" hidden></div><div id="v-system" hidden></div>
+  <div id="v-command"></div><div id="v-overview" hidden></div><div id="v-jobs" hidden></div><div id="v-inbox" hidden></div><div id="v-contacts" hidden></div><div id="v-leads" hidden></div><div id="v-orders" hidden></div><div id="v-streams" hidden></div><div id="v-stats" hidden></div><div id="v-social" hidden></div><div id="v-email" hidden></div><div id="v-system" hidden></div>
 </section>
 </div>
 <div class="dlg" id="dlg" hidden><div class="card" id="dlgc"></div></div>
@@ -60,7 +64,7 @@ label{display:block;font-size:11px;font-weight:600;color:var(--mute);text-transf
   const ago = (iso) => { if (!iso) return "never"; const s = (Date.now() - Date.parse(iso)) / 1000; return s < 90 ? `${Math.round(s)}s ago` : s < 5400 ? `${Math.round(s / 60)} min ago` : s < 172800 ? `${Math.round(s / 3600)} h ago` : new Date(iso).toLocaleDateString(); };
   const when = (iso) => iso ? new Date(iso).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit" }) : "";
   let token = null, data = null;
-  const TABS = ["overview", "jobs", "inbox", "contacts", "leads", "orders", "streams", "stats", "social", "email", "system"];
+  const TABS = ["command", "overview", "jobs", "inbox", "contacts", "leads", "orders", "streams", "stats", "social", "email", "system"];
   try { token = localStorage.getItem("tk_admin"); } catch {}
   const q = new URLSearchParams(location.search).get("t");
   if (q) { token = q; try { localStorage.setItem("tk_admin", q); } catch {} history.replaceState(null, "", "/admin/hub"); }
@@ -74,7 +78,66 @@ label{display:block;font-size:11px;font-weight:600;color:var(--mute);text-transf
   function show(on) { $("signin").hidden = on; $("app").hidden = !on; $("out").hidden = !on; $("refresh").hidden = !on; }
 
   function health(iso, okMin) { if (!iso) return '<span class="bad">never</span>'; const m = (Date.now() - Date.parse(iso)) / 60000; return `<span class="${m <= okMin ? "ok" : "warn"}">${ago(iso)}</span>`; }
+
+  // ---------- Command Center: every feature in one place (actions, tabs, tools, Mac commands)
+  const CC = [
+    ["Sell clips", [
+      ["New clip job", "Long video in, short high-impact clips out (first 3 free for customers).", {form: "clip"}],
+      ["Clip jobs", "Every job: waiting, in progress, delivered, failed.", {tab: "jobs"}],
+      ["Streams", "Your own streams queued for clipping.", {tab: "streams"}],
+      ["Orders", "Paid orders and done-for-you requests.", {tab: "orders"}],
+    ]],
+    ["Grow", [
+      ["Stats", "YouTube views per channel. Refresh pulls the latest now.", {tab: "stats", act: {action: "statsNow"}, label: "Refresh stats"}],
+      ["Social calendar", "Schedule posts; you get a 'post now' email with caption + video.", {tab: "social"}],
+      ["Email", "Lists, welcome sequences, send to a list.", {tab: "email"}],
+      ["Outreach", "Streamer and podcast leads, by stage.", {tab: "leads"}],
+      ["Customers", "One list of everyone: requests, members, subscribers, chats.", {tab: "contacts"}],
+      ["Inbox", "Site chats; reply from here.", {tab: "inbox"}],
+    ]],
+    ["Web tools", [
+      ["SEO Studio", "Titles, descriptions and tags for any game or niche.", {url: "/seo"}],
+      ["Upload Kit", "Thumbnails + post text for a clip.", {url: "/kit"}],
+      ["Done-for-you store", "Hand-picked clip orders.", {url: "/store"}],
+      ["Customer portal", "What customers see after they pay.", {url: "/portal"}],
+      ["Ebooks", "Ebook store.", {url: "/ebooks"}],
+    ]],
+    ["In-house studio (run on your Mac, in autoclip-pipeline)", [
+      ["Clip a long video", "Transcript, best moments, vertical clips with captions.", {cmd: "./clip_pipeline.sh <job> tiktok --clip-length 45 --clip-count 8 --content-type podcast"}],
+      ["Studio package", "Tighten, hook first, thumbnails, Made by TakeKash, by tier.", {cmd: "python3 studio.py run --tier premium <clips_dir>"}],
+      ["Tighten one clip", "Cut list + storyboard first, render after you approve.", {cmd: "python3 studio.py tighten <clip.mp4>\npython3 studio.py tighten <clip.cutlist.json> --approve\npython3 studio.py tighten <clip.cutlist.json> --render out.mp4"}],
+      ["KASH episode", "New KASH video: voice, score, render.", {cmd: "python3 motion.py make --preset presets/kash.json --name <episode>"}],
+      ["Max-SEO pack", "Shorts/TikTok/IG title, description, hashtags, tags.", {cmd: "python3 motion.py seo --preset presets/kash.json --name <episode>"}],
+      ["Campaign ad (internal)", "TakeKash promo from a brief: plan, approve, render.", {cmd: "python3 studio/motion/brandad.py brief.json out --plan\npython3 studio/motion/brandad.py brief.json out --approve\npython3 studio/motion/brandad.py brief.json out"}],
+    ]],
+    ["System", [
+      ["Health", "Clip engine, email sender, failures.", {tab: "system"}],
+      ["Overview", "Today's numbers at a glance.", {tab: "overview"}],
+      ["Clip engine runs", "GitHub Actions for the clip engine.", {url: "https://github.com/takekashusa-netizen/autoclip-pipeline/actions"}],
+      ["Site deploys", "Netlify deploys for this site.", {url: "https://app.netlify.com/projects/takekash/deploys"}],
+      ["MailerLite", "Email account (forms + automations).", {url: "https://dashboard.mailerlite.com/"}],
+    ]],
+  ];
+  function renderCommand() {
+    $("v-command").innerHTML = CC.map(([group, items]) => `<h2 style="margin:18px 0 8px">${esc(group)}</h2><div class="cc">${items.map(([name, what, o], i) => `
+      <div class="card"><h3>${esc(name)}</h3><p class="mute">${esc(what)}</p>
+        ${o.form === "clip" ? `<input id="ccu" placeholder="Video, stream or podcast link"><input id="cce" placeholder="Send clips to (email)" style="margin-top:6px"><div class="row" style="margin-top:8px"><button class="btn" id="ccgo">Start clip job</button></div><div class="msg" id="ccm"></div>` : ""}
+        ${o.act ? `<button class="btn" data-ccact='${esc(JSON.stringify(o.act))}'>${esc(o.label || "Run")}</button> ` : ""}
+        ${o.tab ? `<button class="btn ghost" data-cctab="${esc(o.tab)}">Open</button>` : ""}
+        ${o.url ? `<a class="btn ghost" href="${esc(o.url)}" target="_blank" rel="noopener">Open</a>` : ""}
+        ${o.cmd ? `<span class="cmd" title="Tap to copy">${esc(o.cmd)}</span><span class="mute small">Tap to copy</span>` : ""}
+      </div>`).join("")}</div>`).join("");
+    document.querySelectorAll("[data-cctab]").forEach((b) => b.onclick = () => pick(b.dataset.cctab));
+    document.querySelectorAll("[data-ccact]").forEach((b) => b.onclick = async () => { b.disabled = true; b.textContent = "Running…"; await doAct(JSON.parse(b.dataset.ccact)); });
+    document.querySelectorAll(".cmd").forEach((c) => c.onclick = () => { try { navigator.clipboard.writeText(c.textContent); c.style.borderColor = "var(--kash)"; } catch {} });
+    const go = $("ccgo"); if (go) go.onclick = async () => {
+      $("ccm").textContent = "Sending…";
+      const r = await fetch("/api/clip-request", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: $("ccu").value.trim(), email: $("cce").value.trim() }) });
+      const j = await r.json(); $("ccm").textContent = j.message || j.error; if (r.ok) load();
+    };
+  }
   function render() {
+    renderCommand();
     const d = data, jc = d.jobCounts, unread = d.inbox.filter((c) => c.unread && c.status === "open").length;
     $("v-overview").innerHTML = `
       <div class="card"><h2>Right now</h2><div class="grid">
