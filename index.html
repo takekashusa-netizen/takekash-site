@@ -3,7 +3,13 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <title>TakeKash — AI Clipping Agent for Streamers</title>
+  <title>TakeKash — Long Videos Into Short, High-Impact Clips</title>
+  <meta name="description" content="Send a stream, podcast or YouTube link. TakeKash cuts it into vertical clips with captions, titles and hashtags for TikTok, Reels and Shorts. First 3 clips free."/>
+  <link rel="canonical" href="https://takekash.com/"/>
+  <meta property="og:type" content="website"/><meta property="og:url" content="https://takekash.com/"/>
+  <meta property="og:title" content="TakeKash — Long Videos Into Short, High-Impact Clips"/>
+  <meta property="og:description" content="Streams, podcasts and YouTube videos cut into ready-to-post Shorts, Reels and TikToks. First 3 clips free."/>
+  <meta property="og:image" content="https://takekash.com/icon-512.png"/><meta name="twitter:card" content="summary"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
     :root{--bg:#080808;--bg2:#0f0f0f;--bg3:#1a1a1a;--gold:#f5a623;--gold2:#e8940f;--green:#00ff88;--text:#f0f0f0;--muted:#666;--border:#1e1e1e;--r:6px}
@@ -34,6 +40,8 @@
     .how-step{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:26px}
     .how-step h3{font-size:19px;margin:10px 0 8px}.how-step p{color:var(--muted);line-height:1.6;font-size:15px}
     @media(max-width:760px){.how-grid{grid-template-columns:1fr}}
+    .proof-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:900px;margin:0 auto}.proof-grid iframe{width:100%;aspect-ratio:9/16;border:1px solid var(--border);border-radius:14px;background:#000}
+    @media(max-width:760px){.proof-grid{grid-template-columns:1fr;max-width:340px}}
     .faq-home{max-width:760px;margin:0 auto;padding:60px 24px}
     .faq-home details{border-top:1px solid var(--border);padding:16px 0}.faq-home summary{cursor:pointer;font-weight:600;font-size:16px}
     .faq-home p{color:var(--muted);margin-top:8px;line-height:1.6}
@@ -129,9 +137,6 @@
     .footer-links{display:flex;gap:24px;justify-content:center;margin-bottom:16px;flex-wrap:wrap}
     .glow-divider{height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.2;margin:0}
   </style>
-<!-- MailerLite Universal -->
-<script>(function(w,d,e,u,f,l,n){w[f]=w[f]||function(){(w[f].q=w[f].q||[]).push(arguments);},l=d.createElement(e),l.async=1,l.src=u,n=d.getElementsByTagName(e)[0],n.parentNode.insertBefore(l,n);})(window,document,'script','https://assets.mailerlite.com/js/universal.js','ml');ml('account','2596717');</script>
-<!-- End MailerLite Universal -->
 </head>
 <body>
 
@@ -164,11 +169,11 @@
   <section class="hero" id="get-clips">
     <canvas id="hero-canvas"></canvas>
     <div class="hero-content">
-      <div class="hero-badge">FOR TWITCH, KICK &amp; YOUTUBE STREAMERS</div>
-      <h1>Your stream's best moments, <em>clipped and ready to post.</em></h1>
-      <p>Send us your stream link. We find the kills, clutches, reactions and trash talk, cut out the dead time, and send back vertical clips with captions, titles and hashtags for TikTok, Reels and Shorts.</p>
+      <div class="hero-badge">FOR STREAMERS, PODCASTS &amp; YOUTUBERS</div>
+      <h1>Your long videos, <em>cut into short, high-impact clips.</em></h1>
+      <p>Send us a stream, podcast or YouTube link. We find the moments worth watching, the plays, reactions and quotable lines, cut the dead time, and send back vertical clips with captions, titles and hashtags for TikTok, Reels and Shorts.</p>
       <form class="url-form stack" id="clip-form" onsubmit="return requestClips(event)">
-        <input type="url" placeholder="Paste your stream or VOD link" id="hero-url" required/>
+        <input type="url" placeholder="Paste a stream, podcast or YouTube link" id="hero-url" required/>
         <input type="email" placeholder="Your email (we send the clips here)" id="hero-email" required autocomplete="email"/>
         <button class="btn-gold" type="submit" id="clip-btn">Get my clips</button>
       </form>
@@ -176,20 +181,22 @@
     </div>
   </section>
   <div class="glow-divider"></div>
-  <section class="features" id="free-ad">
-    <div class="section-label">CYBER WEEK · FREE FOR BRANDS &amp; SHOPS</div>
-    <h2 class="section-title">Your first ad is on us.</h2>
-    <p style="max-width:640px;margin:0 auto 18px;color:var(--muted);text-align:center">A 15–30s vertical ad for TikTok, Reels and Shorts, with motion, voice-over, captions and the hashtags people actually search. Free, no card. You get it in about 48 hours.</p>
-    <div class="ml-embedded" data-form="3G0glv" style="max-width:520px;margin:0 auto"></div>
-    <p class="form-note" id="ad-msg" style="text-align:center">Streamer? Your first 3 clips are free too ↑</p>
-  </section>
-  <div class="glow-divider"></div>
 
+  <section class="how" id="proof">
+    <div class="section-label reveal">CLIPS WE'VE MADE</div>
+    <h2 class="section-title reveal">Cut from long-form. Posted as Shorts.</h2>
+    <p style="max-width:620px;margin:0 auto 26px;color:var(--muted)">Each of these came out of a full-length episode and pulled 1,400+ views on our own channel.</p>
+    <div class="proof-grid">
+      <iframe loading="lazy" src="https://www.youtube-nocookie.com/embed/AAhpvPGENdk" title="Clip 1" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe>
+      <iframe loading="lazy" src="https://www.youtube-nocookie.com/embed/N99vJamNdgI" title="Clip 2" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe>
+      <iframe loading="lazy" src="https://www.youtube-nocookie.com/embed/cEYKqpXRfIs" title="Clip 3" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe>
+    </div>
+  </section>
   <section class="how" id="how">
     <div class="section-label reveal">HOW IT WORKS</div>
     <h2 class="section-title reveal reveal-delay-1">Three steps. You only do the first one.</h2>
     <div class="how-grid">
-      <div class="how-step reveal reveal-delay-1"><div class="step-num">1</div><h3>Send your link</h3><p>Paste a Twitch, Kick or YouTube stream link (10 minutes or longer) and your email.</p></div>
+      <div class="how-step reveal reveal-delay-1"><div class="step-num">1</div><h3>Send your link</h3><p>Paste a Twitch, Kick or YouTube link (stream, podcast or video, 10 minutes or longer) and your email.</p></div>
       <div class="how-step reveal reveal-delay-2"><div class="step-num">2</div><h3>We find the moments</h3><p>We watch for the game you're playing, the big plays, the reactions and the "clip that" moments, and skip menus, loading screens and AFK time.</p></div>
       <div class="how-step reveal reveal-delay-3"><div class="step-num">3</div><h3>You post</h3><p>You get 9:16 clips with word-by-word captions, plus a title, caption and hashtags for each platform. Download and post.</p></div>
     </div>
@@ -224,7 +231,8 @@
     <details><summary>How long does it take?</summary><p>Most streams come back the same day. Long streams can take up to 24 hours.</p></details>
     <details><summary>What links work?</summary><p>Twitch VODs and highlights, Kick VODs, and YouTube videos or past livestreams, 10 minutes or longer.</p></details>
     <details><summary>Do I need an account?</summary><p>No. Just your stream link and an email to send the clips to.</p></details>
-    <details><summary>Who owns the clips?</summary><p>You do. Only send streams you have the rights to.</p></details>
+    <details><summary>Who owns the clips?</summary><p>You do. Only send videos you have the rights to.</p></details>
+    <details><summary>Is there a watermark?</summary><p>Every clip carries a small &ldquo;Made by TakeKash&rdquo; tag in the top corner, clear of the app buttons and your captions.</p></details>
   </section>
 
   <div class="glow-divider"></div>
@@ -390,16 +398,6 @@ function goHome(anchor){
   setTimeout(()=>{const el=document.getElementById(anchor);if(el)el.scrollIntoView({behavior:'smooth'});if(anchor==='get-clips')document.getElementById('hero-url').focus();},60);
   return false;
 }
-// MailerLite "TakeKash Website Leads Form" -> group Website Leads; count each signup in the funnel
-// MailerLite "TakeKash Website Leads Form" -> group Website Leads (lead kept in MailerLite).
-// Until takekash.com is an authenticated MailerLite sender, the welcome emails go out through the site's own
-// Gmail sender: the same signup is also added to the site list "free-ad-trial" (3-email sequence).
-var _adLead='';
-document.addEventListener('submit',function(e){var f=e.target;if(f&&f.closest&&f.closest('.ml-embedded')){var i=f.querySelector('input[type=email],input[name="fields[email]"]');if(i)_adLead=i.value.trim();}},true);
-window.ml_webform_success_197172905768912745=function(){try{
-fetch('/api/track',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({event:'ad_trial_signup'}),keepalive:true});
-if(_adLead)fetch('/api/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({list:'free-ad-trial',source:'home-free-ad-ml',email:_adLead}),keepalive:true});
-}catch(x){}};
 async function requestClips(e){
   e.preventDefault();
   const btn=document.getElementById('clip-btn'),msg=document.getElementById('clip-msg');
