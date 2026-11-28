@@ -28,9 +28,18 @@ export default async (req) => {
     const id = key.slice("running:".length);
     await store.delete(key);
     const rec = await store.get(`req:${id}`, { type: "json" });
-    if ((run.tries || 1) < 2) { await store.setJSON(`queue:${id}`, { ...run.job, tries: (run.tries || 1) + 1 }); if (rec) await store.setJSON(`req:${id}`, T.step(rec, "requeued", "engine run did not finish in 3h")); }
+    if ((run.tries || 1) < 2) { await store.setJSON(`${run.mac ? "macqueue" : "queue"}:${id}`, { ...run.job, tries: (run.tries || 1) + 1 }); if (rec) await store.setJSON(`req:${id}`, T.step(rec, "requeued", "engine run did not finish in 3h")); }
     else await mail.send(process.env, { to: access.ownerEmail(process.env), subject: "ACTION NEEDED: clip job stuck",
       html: `<p>Clip job ${id} was claimed twice and never finished. Make it by hand or check the engine runs.</p>` }).catch(() => {});
+  }
+
+  // YouTube jobs wait for the owner's Mac: nudge the owner once if one has waited 6 h
+  for (const { key } of (await store.list({ prefix: "macqueue:" })).blobs) {
+    const job = await store.get(key, { type: "json" });
+    if (!job || job.nudged || now - Date.parse(job.at || 0) < 6 * 3600e3) continue;
+    await store.setJSON(key, { ...job, nudged: new Date(now).toISOString() });
+    await mail.send(process.env, { to: access.ownerEmail(process.env), subject: "A YouTube clip job is waiting for your Mac",
+      html: `<p>A customer's YouTube clips have waited 6 hours. Turn on your Mac (the worker picks it up on its own), or make them by hand from the Admin Hub.</p>` }).catch(() => {});
   }
 
   const { privateKey } = await D.siteKey(getStore("keys"));   // tickets are signed at claim time, so they're always fresh

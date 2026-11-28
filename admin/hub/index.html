@@ -110,6 +110,9 @@ label{display:block;font-size:11px;font-weight:600;color:var(--mute);text-transf
       ["Max-SEO pack", "Shorts/TikTok/IG title, description, hashtags, tags.", {cmd: "python3 motion.py seo --preset presets/kash.json --name <episode>"}],
       ["Campaign ad (internal)", "TakeKash promo from a brief: plan, approve, render.", {cmd: "python3 studio/motion/brandad.py brief.json out --plan\npython3 studio/motion/brandad.py brief.json out --approve\npython3 studio/motion/brandad.py brief.json out"}],
     ]],
+    ["Your Mac (YouTube jobs)", [
+      ["Mac worker", "YouTube blocks cloud downloads, so your Mac makes YouTube clips automatically every 5 minutes.", {mac: true}],
+    ]],
     ["System", [
       ["Health", "Clip engine, email sender, failures.", {tab: "system"}],
       ["Overview", "Today's numbers at a glance.", {tab: "overview"}],
@@ -125,11 +128,15 @@ label{display:block;font-size:11px;font-weight:600;color:var(--mute);text-transf
         ${o.act ? `<button class="btn" data-ccact='${esc(JSON.stringify(o.act))}'>${esc(o.label || "Run")}</button> ` : ""}
         ${o.tab ? `<button class="btn ghost" data-cctab="${esc(o.tab)}">Open</button>` : ""}
         ${o.url ? `<a class="btn ghost" href="${esc(o.url)}" target="_blank" rel="noopener">Open</a>` : ""}
+        ${o.mac ? `<p class="small">Last check-in: ${health(data.engine.macLastPoll && data.engine.macLastPoll.at, 12)} · ${data.engine.macQueued} waiting</p>
+          <div class="row"><button class="btn" id="ccmac">Copy Mac key</button></div><div class="msg" id="ccmacm"></div>
+          <span class="cmd" title="Tap to copy">cd ~/autoclip-pipeline && git pull && python3 worker/mac_customer_job.py install</span><span class="mute small">Then paste the key after TAKEKASH_TOKEN= in ~/.takekash/engine.env (lasts 30 days)</span>` : ""}
         ${o.cmd ? `<span class="cmd" title="Tap to copy">${esc(o.cmd)}</span><span class="mute small">Tap to copy</span>` : ""}
       </div>`).join("")}</div>`).join("");
     document.querySelectorAll("[data-cctab]").forEach((b) => b.onclick = () => pick(b.dataset.cctab));
     document.querySelectorAll("[data-ccact]").forEach((b) => b.onclick = async () => { b.disabled = true; b.textContent = "Running…"; await doAct(JSON.parse(b.dataset.ccact)); });
     document.querySelectorAll(".cmd").forEach((c) => c.onclick = () => { try { navigator.clipboard.writeText(c.textContent); c.style.borderColor = "var(--kash)"; } catch {} });
+    const mk = $("ccmac"); if (mk) mk.onclick = () => { try { navigator.clipboard.writeText(token); $("ccmacm").textContent = "Copied. It's your sign-in key: keep it private."; } catch { $("ccmacm").textContent = "Copy failed"; } };
     const go = $("ccgo"); if (go) go.onclick = async () => {
       $("ccm").textContent = "Sending…";
       const r = await fetch("/api/clip-request", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: $("ccu").value.trim(), email: $("cce").value.trim() }) });

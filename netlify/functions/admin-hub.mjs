@@ -52,6 +52,8 @@ async function overview() {
     engine: {
       lastPoll: await req.get("engine:lastPoll", { type: "json" }),
       queued: (await req.list({ prefix: "queue:" })).blobs.length,
+      macLastPoll: await req.get("mac:lastPoll", { type: "json" }),
+      macQueued: (await req.list({ prefix: "macqueue:" })).blobs.length,
       running: (await all(req, "running:")).map((r) => ({ id: r.key.slice(8), at: new Date(r.at).toISOString(), run: r.run, tries: r.tries })),
     },
     mail: {
@@ -91,12 +93,12 @@ async function act(b) {
       const r = await job(b.id); if (!r) return { error: "no such job" };
       r.cbk = D.newCallbackKey(); r.status = "processing"; T.step(r, "requeued", "by owner");
       await req.setJSON(`req:${r.id}`, r); await req.delete(`running:${r.id}`);
-      await req.setJSON(`queue:${r.id}`, { jid: r.id, url: r.url, clips: r.reserved || 1, cbk: r.cbk });
+      await req.setJSON(`${D.needsOwnerMachine(r.url) ? "macqueue" : "queue"}:${r.id}`, { jid: r.id, url: r.url, clips: r.reserved || 1, cbk: r.cbk, at: new Date().toISOString() });   // YouTube -> the Mac
       return { ok: true };
     }
     case "cancel": {
       const r = await job(b.id); if (!r) return { error: "no such job" };
-      await req.delete(`queue:${r.id}`); await req.delete(`running:${r.id}`);
+      await req.delete(`queue:${r.id}`); await req.delete(`macqueue:${r.id}`); await req.delete(`running:${r.id}`);
       if (r.slots && r.reserved) await D.refund(getStore("clip-quota"), r.slots);
       Object.assign(r, { status: "failed", reserved: 0 }); T.step(r, "cancelled", "allowance refunded");
       await req.setJSON(`req:${r.id}`, r); return { ok: true };

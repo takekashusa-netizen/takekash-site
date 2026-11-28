@@ -21,9 +21,17 @@ async function run(id, url, email = "fan@x.com") {
   return { s: r.status, d: await r.json(), rec: await reqs.get(`req:${id}`, { type: "json" }), q: await reqs.get(`queue:${id}`) };
 }
 let x = await run("a".repeat(20), "https://www.youtube.com/watch?v=YmAv7cHneDk");
-ok(x.s === 200 && x.d.status === "manual" && x.rec.ownerMachine && !x.q, "YouTube job is not sent to the cloud engine");
+const mq = await reqs.get(`macqueue:${"a".repeat(20)}`, { type: "json" });
+ok(x.s === 200 && x.d.status === "processing" && x.rec.ownerMachine && !x.q && mq && mq.cbk === x.rec.cbk, "YouTube job goes to the Mac queue (never the cloud engine), with its callback key");
 ok(x.rec.reserved > 0, "customer's clips stay reserved (they will be delivered)");
-ok(globalThis.__mailLog.some((m) => m.to === "takekashusa@gmail.com" && /Mac/.test(m.subject)), "owner gets a 'make it on your Mac' email even with OWNER_EMAIL unset");
+ok(globalThis.__mailLog.some((m) => m.to === "takekashusa@gmail.com" && /Mac/.test(m.subject)), "owner is told a YouTube job is queued for the Mac, even with OWNER_EMAIL unset");
+const macq = (await import("../netlify/functions/mac-queue.mjs")).default;
+const call = (tok) => macq(new Request("https://site.example/api/mac-queue", { method: "POST", headers: tok ? { authorization: `Bearer ${tok}` } : {} }));
+ok((await call()).status === 401 && (await call(access.signToken("fan@x.com", process.env))).status === 401, "Mac queue refuses no token and non-owner tokens");
+let got = await (await call(access.signToken("takekashusa@gmail.com", process.env))).json();
+ok(got.tickets.length === 1 && !(await reqs.get(`macqueue:${"a".repeat(20)}`)) && await reqs.get(`running:${"a".repeat(20)}`), "owner's Mac claims the job once (leased, removed from the queue)");
+got = await (await call(access.signToken("takekashusa@gmail.com", process.env))).json();
+ok(got.tickets.length === 0, "a second poll gets nothing (no double work)");
 x = await run("b".repeat(20), "https://www.twitch.tv/videos/123", "other@x.com");
 ok(x.d.status === "processing" && x.q, "Twitch job still goes to the cloud engine");
 console.log(`youtube-routing: ${pass} passed`); await srv.stop(); process.exit(0);
